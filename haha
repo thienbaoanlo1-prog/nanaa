@@ -44,8 +44,6 @@ Card.ClipsDescendants = true
 Card.Parent = ScreenGui
 
 -- Strong black/white background sweep for the loading card.
--- A broad WHITE band enters from the RIGHT, crosses the whole loading background,
--- leaves to the LEFT, the background becomes BLACK again, and the cycle repeats forever.
 local LoadingBgGradient = Instance.new("UIGradient")
 LoadingBgGradient.Name = "LoadingBlackWhiteSweep"
 LoadingBgGradient.Color = ColorSequence.new({
@@ -64,7 +62,6 @@ LoadingBgGradient.Parent = Card
 
 task.spawn(function()
     while ScreenGui.Parent and Card.Parent do
-        -- Start with a completely dark loading background.
         LoadingBgGradient.Offset = Vector2.new(1.35, 0)
         local sweep = TweenService:Create(
             LoadingBgGradient,
@@ -73,7 +70,6 @@ task.spawn(function()
         )
         sweep:Play()
         sweep.Completed:Wait()
-        -- Brief dark reset before the next white pass enters from the right.
         LoadingBgGradient.Offset = Vector2.new(1.35, 0)
         task.wait(0.18)
     end
@@ -244,24 +240,6 @@ ScreenGui:Destroy()
 -- ======================================================
 --          PUT YOUR MAIN SYLPHIN HUB UI SCRIPT BELOW
 -- ======================================================
--- Example:
--- loadstring(game:HttpGet("YOUR_MAIN_HUB_SCRIPT_URL_HERE"))()
-
---[[
-    SYLPHIN SCRIPT HUB
-    Built from Steal_An_Egg_All_Scripts.txt
-
-    Features:
-    - Small mobile-friendly GUI
-    - Scripts tab with all named entries from the source file
-    - More Scripts tab containing the scripts extracted from the supplied screen recording, named Script 1 through Script 45
-    - Config tab
-    - GUI size controls
-    - Color/theme controls
-    - Touch + mouse dragging
-    - Open / close / minimize animations
-    - Individual execute buttons
-]]
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -273,7 +251,6 @@ local SylPhinSoundFolder = Instance.new("Folder")
 SylPhinSoundFolder.Name = "SylPhinSounds"
 SylPhinSoundFolder.Parent = SoundService
 
--- One sound only: every click/option change produces exactly one immediate sound.
 local SylPhinClickSound = Instance.new("Sound")
 SylPhinClickSound.Name = "SylPhinClick"
 SylPhinClickSound.SoundId = "rbxassetid://6026984224"
@@ -480,8 +457,6 @@ titleGradient.Parent = title
 local SylPhinRed = Color3.fromRGB(255, 72, 72)
 local SylPhinWhite = Color3.fromRGB(255, 255, 255)
 
--- SYLPHIN: seamless red -> white -> red -> white.
--- Both ends are red so the loop can restart without a visible red snap.
 titleGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0.00, SylPhinRed),
     ColorSequenceKeypoint.new(0.18, SylPhinRed),
@@ -499,7 +474,6 @@ task.spawn(function()
             Offset = Vector2.new(-1.2, 0)
         })
         t.Completed:Wait()
-        -- Endpoints are both red, so the restart is visually continuous.
     end
 end)
 
@@ -536,8 +510,6 @@ end
 local minimize = topButton("—", -52)
 local close = topButton("×", -8)
 
--- Dedicated drag line OUTSIDE the main GUI, slightly below it.
--- It follows the whole window and remains available while the GUI is open.
 local dragHandle = Instance.new("TextButton")
 dragHandle.Name = "SylPhinDragHandle"
 dragHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -569,7 +541,6 @@ local dragCorner = Instance.new("UICorner")
 dragCorner.CornerRadius = UDim.new(1, 0)
 dragCorner.Parent = dragHandle
 
--- Bottom-right resize handle. It stays OUTSIDE the GUI and follows it exactly.
 local resizeHandle = Instance.new("TextButton")
 resizeHandle.Name = "SylPhinResizeHandle"
 resizeHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -670,7 +641,6 @@ local morePage = makePage("More Scripts")
 local configPage = makePage("Config")
 
 local tabButtons = {}
-
 local tabSweepTokens = {}
 
 local function makeTab(text, icon)
@@ -884,7 +854,6 @@ local function addScriptCard(parent, name, code)
         end
     end)
 
-
     run.Activated:Connect(function()
         execute(code, run)
     end)
@@ -992,7 +961,6 @@ local function applyTheme(index)
     ThemeIndex = index
     local th = Themes[ThemeIndex]
     colorButton.Text = "Choose Color • " .. th.Name
-    -- Keep the SYLPHIN title's own animated red/lilac sweep; theme changes do not reset it.
     tween(main, TweenInfo.new(0.2), {BackgroundColor3 = th.Main})
     tween(stroke, TweenInfo.new(0.2), {Color = th.Accent})
     dragVisual.BackgroundColor3 = th.Accent
@@ -1043,7 +1011,6 @@ local function applyTheme(index)
                     end
                 end
             elseif child:IsA("TextButton") and child.Name ~= "RUN" then
-                -- Config/action buttons follow the selected theme too.
                 child.BackgroundColor3 = th.Panel
                 child.TextColor3 = Color3.fromRGB(255,255,255)
             end
@@ -1147,7 +1114,6 @@ local function endDrag(input)
     dragSource = nil
 end
 
--- The bottom line is the dedicated drag area.
 dragHandle.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
@@ -1155,7 +1121,6 @@ dragHandle.InputBegan:Connect(function(input)
     end
 end)
 
--- Drag the outside ↘ handle to resize the GUI with a finger/mouse.
 resizeHandle.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
@@ -1177,7 +1142,6 @@ local function updateResize(input)
     local maxH = math.max(230, math.min(430, 2 * math.min(centerY - 8, viewport.Y - centerY - 8)))
     local w = math.clamp(resizeStartSize.X.Offset + delta.X * 2, 300, maxW)
     local h = math.clamp(resizeStartSize.Y.Offset + delta.Y * 2, 230, maxH)
-    -- LOCKED: resizing changes only size. The GUI never moves while this handle is held.
     main.Size = UDim2.fromOffset(w, h)
     shadow.Size = UDim2.fromOffset(w, h)
     updateFloatingControls()
@@ -1244,7 +1208,6 @@ local function closeGui()
     dragHandle.Visible = false
     resizeHandle.Visible = false
     if notification then notification.Visible = false end
-    -- Ensure no transparent black layer remains after closing.
     main.BackgroundTransparency = 1
     shadow.BackgroundTransparency = 1
     main.Size = Sizes[SizeIndex]
@@ -1314,12 +1277,10 @@ minimize.Activated:Connect(function()
     end
 end)
 
--- Sound is intentionally NOT globally bound. Each real button/option below fires one sound once.
 refreshTabs()
 
 -- ======================================================
 -- MOBILE-STYLE SUPPORT NOTIFICATION
--- Appears above SYLPHIN after the intro and slides away smoothly.
 -- ======================================================
 local notification = Instance.new("Frame")
 notification.Name = "SupportNotification"
@@ -1362,7 +1323,6 @@ notificationText.TextXAlignment = Enum.TextXAlignment.Left
 notificationText.ZIndex = 91
 notificationText.Parent = notification
 
--- Support message: green -> white -> green -> white, continuously.
 local notificationGradient = Instance.new("UIGradient")
 notificationGradient.Rotation = 0
 notificationGradient.Offset = Vector2.new(1.1, 0)
@@ -1394,7 +1354,6 @@ end
 function showSupportNotification()
     updateNotificationPosition()
     notification.Visible = true
-    -- One sound exactly when the notification becomes visible.
     pcall(function() SylPhinPlaySound("click", 1.0, 0.30) end)
     notification.BackgroundTransparency = 1
     notificationText.TextTransparency = 1
@@ -1424,8 +1383,6 @@ end
 
 -- ======================================================
 -- ONE-SCREEN INTRO -> MAIN GUI HANDOFF
--- The intro and SYLPHIN hub use the SAME ScreenGui, so the
--- main GUI is not destroyed/recreated after the intro.
 -- ======================================================
 main.Visible = false
 shadow.Visible = false
@@ -1442,7 +1399,6 @@ intro.BorderSizePixel = 0
 intro.ZIndex = 100
 intro.Parent = gui
 
--- Loading background: black -> white -> black sweeping right -> left forever.
 local introBgGradient = Instance.new("UIGradient")
 introBgGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0,0,0)),
@@ -1551,10 +1507,8 @@ task.wait(2.6)
 introStatus.Text = "SYLPHIN"
 task.wait(1.5)
 
--- Fade the intro away while the MAIN GUI fades in underneath it.
 main.Visible = true
 shadow.Visible = true
--- The main GUI sound happens at the exact frame the GUI becomes visible.
 SylPhinPlayClick(1.35,0.24)
 mainScale.Scale = 0.78
 shadowScale.Scale = 0.78
