@@ -1,191 +1,284 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local ContentProvider = game:GetService("ContentProvider")
-
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- 1. DỌN DẸP GUI CŨ BỊ KẸT
+-- Cấu hình Logo & Tải ảnh từ URL
+local fileName = "sylphin_logo.png"
+local imageUrl = "https://files.catbox.moe/0iwbgk.png"
+local LOGO_ASSET = "rbxassetid://85095067560330" -- Fallback ID nếu executor không hỗ trợ getcustomasset
+
+if isfile and writefile and getcustomasset then
+    pcall(function()
+        if not isfile(fileName) then
+            writefile(fileName, game:HttpGet(imageUrl))
+        end
+        LOGO_ASSET = getcustomasset(fileName)
+    end)
+end
+
+local DISCORD_LINK = "https://discord.gg/sylphins"
+
+-- Tự động sao chép Discord link vào bộ nhớ tạm
+if setclipboard then
+    pcall(function()
+        setclipboard(DISCORD_LINK)
+    end)
+end
+
+-- ScreenGui Setup (Hỗ trợ Executor Parent Safeguards)
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local GuiParent = (gethui and gethui()) or (syn and syn.protect_gui and PlayerGui) or PlayerGui
 
-for _, gui in ipairs(GuiParent:GetChildren()) do
-    if gui.Name == "SylPhin" or gui.Name == "SylPhinHubIntro" then
-        gui:Destroy()
-    end
-end
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SylPhinHubIntro"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = GuiParent
 
--- CẤU HÌNH LOGO (Bạn chỉ cần điền chuỗi ID số hoặc link rbxassetid vào đây)
-local RAW_LOGO_ID = "85095067560330" 
-
--- Hàm tự động chuyển đổi ID Decal/Image thành rbxthumb để chắc chắn hiển thị 100%
-local function FixRobloxImageId(id)
-    local numId = tostring(id):match("%d+")
-    if numId then
-        return "rbxthumb://type=Asset&id=" .. numId .. "&w=420&h=420"
-    end
-    return id
-end
-
-local FINAL_LOGO_ASSET = FixRobloxImageId(RAW_LOGO_ID)
-
--- Copy link Discord
-if setclipboard then
-    pcall(function() setclipboard("https://discord.gg/sylphins") end)
-end
-
----------------------------------------------------------
--- 2. MÀN HÌNH INTRO LOADING (ĐÃ SỬA LỖI LOGO & TỰ TẮT)
----------------------------------------------------------
-local IntroGui = Instance.new("ScreenGui")
-IntroGui.Name = "SylPhinHubIntro"
-IntroGui.ResetOnSpawn = false
-IntroGui.IgnoreGuiInset = true
-IntroGui.DisplayOrder = 99999
-IntroGui.Parent = GuiParent
-
+-- Fullscreen Background Dim/Blur
 local DarkOverlay = Instance.new("Frame")
+DarkOverlay.Name = "DarkOverlay"
 DarkOverlay.Size = UDim2.fromScale(1, 1)
 DarkOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 DarkOverlay.BackgroundTransparency = 1
-DarkOverlay.Parent = IntroGui
+DarkOverlay.Parent = ScreenGui
 
+-- Central Card Frame
 local Card = Instance.new("Frame")
+Card.Name = "Card"
 Card.AnchorPoint = Vector2.new(0.5, 0.5)
-Card.Position = UDim2.fromScale(0.5, 0.5)
-Card.Size = UDim2.fromOffset(340, 210)
-Card.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+Card.Position = UDim2.fromScale(0.5, 0.54)
+Card.Size = UDim2.fromOffset(360, 220)
+Card.BackgroundColor3 = Color3.fromRGB(14, 14, 16)
 Card.BackgroundTransparency = 1
 Card.ClipsDescendants = true
-Card.Parent = IntroGui
+Card.Parent = ScreenGui
+
+-- Gradient Background Animation
+local LoadingBgGradient = Instance.new("UIGradient")
+LoadingBgGradient.Name = "LoadingBlackWhiteSweep"
+LoadingBgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(0.28, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(0.40, Color3.fromRGB(70, 70, 70)),
+    ColorSequenceKeypoint.new(0.46, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.54, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.60, Color3.fromRGB(70, 70, 70)),
+    ColorSequenceKeypoint.new(0.72, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
+})
+LoadingBgGradient.Rotation = 0
+LoadingBgGradient.Offset = Vector2.new(1.35, 0)
+LoadingBgGradient.Parent = Card
+
+task.spawn(function()
+    while ScreenGui.Parent and Card.Parent do
+        LoadingBgGradient.Offset = Vector2.new(1.35, 0)
+        local sweep = TweenService:Create(
+            LoadingBgGradient,
+            TweenInfo.new(2.8, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+            {Offset = Vector2.new(-1.35, 0)}
+        )
+        sweep:Play()
+        sweep.Completed:Wait()
+        LoadingBgGradient.Offset = Vector2.new(1.35, 0)
+        task.wait(0.18)
+    end
+end)
 
 local CardCorner = Instance.new("UICorner")
 CardCorner.CornerRadius = UDim.new(0, 14)
 CardCorner.Parent = Card
 
 local CardStroke = Instance.new("UIStroke")
-CardStroke.Color = Color3.fromRGB(255, 60, 60)
+CardStroke.Color = Color3.fromRGB(255, 255, 255)
 CardStroke.Transparency = 1
 CardStroke.Thickness = 1.2
+CardStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 CardStroke.Parent = Card
 
--- THIẾT LẬP LOGO
+-- 1. Logo màn hình Intro
 local Logo = Instance.new("ImageLabel")
-Logo.Name = "Logo"
+Logo.Name = "IntroLogo"
 Logo.AnchorPoint = Vector2.new(0.5, 0)
-Logo.Position = UDim2.new(0.5, 0, 0.08, 0)
-Logo.Size = UDim2.fromOffset(50, 50)
+Logo.Position = UDim2.new(0.5, 0, 0.12, 0)
+Logo.Size = UDim2.fromOffset(56, 56)
 Logo.BackgroundTransparency = 1
-Logo.Image = FINAL_LOGO_ASSET
+Logo.Image = LOGO_ASSET
+Logo.ImageColor3 = Color3.fromRGB(255, 255, 255)
 Logo.ImageTransparency = 1
 Logo.ScaleType = Enum.ScaleType.Fit
 Logo.Parent = Card
 
--- Preload ảnh vào bộ nhớ trước khi chạy hiệu ứng
-task.spawn(function()
-    pcall(function()
-        ContentProvider:PreloadAsync({Logo})
-    end)
-end)
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(0, 10)
+LogoCorner.Parent = Logo
 
+-- Title Text
 local Title = Instance.new("TextLabel")
+Title.Name = "Title"
 Title.AnchorPoint = Vector2.new(0.5, 0)
-Title.Position = UDim2.new(0.5, 0, 0.38, 0)
-Title.Size = UDim2.new(0.9, 0, 0, 22)
+Title.Position = UDim2.new(0.5, 0, 0.43, 0)
+Title.Size = UDim2.new(0.9, 0, 0, 24)
 Title.BackgroundTransparency = 1
 Title.Text = "HELLO"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextTransparency = 1
 Title.Font = Enum.Font.FredokaOne
-Title.TextSize = 18
+Title.TextSize = 20
 Title.Parent = Card
 
-local SubTitle = Instance.new("TextLabel")
-SubTitle.AnchorPoint = Vector2.new(0.5, 0)
-SubTitle.Position = UDim2.new(0.5, 0, 0.52, 0)
-SubTitle.Size = UDim2.new(0.9, 0, 0, 16)
-SubTitle.BackgroundTransparency = 1
-SubTitle.Text = "discord.gg/sylphins • Link Copied"
-SubTitle.TextColor3 = Color3.fromRGB(160, 160, 165)
-SubTitle.TextTransparency = 1
-SubTitle.Font = Enum.Font.FredokaOne
-SubTitle.TextSize = 11
-SubTitle.Parent = Card
+-- Discord Link Text
+local DiscordText = Instance.new("TextLabel")
+DiscordText.Name = "DiscordText"
+DiscordText.AnchorPoint = Vector2.new(0.5, 0)
+DiscordText.Position = UDim2.new(0.5, 0, 0.56, 0)
+DiscordText.Size = UDim2.new(0.9, 0, 0, 18)
+DiscordText.BackgroundTransparency = 1
+DiscordText.Text = "discord.gg/sylphins • Link Copied"
+DiscordText.TextColor3 = Color3.fromRGB(160, 160, 165)
+DiscordText.TextTransparency = 1
+DiscordText.Font = Enum.Font.FredokaOne
+DiscordText.TextSize = 12
+DiscordText.Parent = Card
 
+-- Progress Bar Background
 local ProgressBg = Instance.new("Frame")
+ProgressBg.Name = "ProgressBg"
 ProgressBg.AnchorPoint = Vector2.new(0.5, 0)
-ProgressBg.Position = UDim2.new(0.5, 0, 0.72, 0)
-ProgressBg.Size = UDim2.new(0.8, 0, 0, 4)
-ProgressBg.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+ProgressBg.Position = UDim2.new(0.5, 0, 0.76, 0)
+ProgressBg.Size = UDim2.new(0.78, 0, 0, 5)
+ProgressBg.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 ProgressBg.BackgroundTransparency = 1
+ProgressBg.BorderSizePixel = 0
 ProgressBg.Parent = Card
 
-local ProgressBgCorner = Instance.new("UICorner")
-ProgressBgCorner.CornerRadius = UDim.new(1, 0)
-ProgressBgCorner.Parent = ProgressBg
+local ProgressCorner = Instance.new("UICorner")
+ProgressCorner.CornerRadius = UDim.new(1, 0)
+ProgressCorner.Parent = ProgressBg
 
+-- Progress Bar Fill
 local ProgressFill = Instance.new("Frame")
+ProgressFill.Name = "ProgressFill"
+ProgressFill.Position = UDim2.new(0, 0, 0, 0)
 ProgressFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressFill.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+ProgressFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ProgressFill.BackgroundTransparency = 1
 ProgressFill.BorderSizePixel = 0
 ProgressFill.Parent = ProgressBg
 
-local ProgressFillCorner = Instance.new("UICorner")
-ProgressFillCorner.CornerRadius = UDim.new(1, 0)
-ProgressFillCorner.Parent = ProgressFill
+local FillCorner = Instance.new("UICorner")
+FillCorner.CornerRadius = UDim.new(1, 0)
+FillCorner.Parent = ProgressFill
 
+-- Status Text
 local Status = Instance.new("TextLabel")
+Status.Name = "Status"
 Status.AnchorPoint = Vector2.new(0.5, 0)
-Status.Position = UDim2.new(0.5, 0, 0.82, 0)
+Status.Position = UDim2.new(0.5, 0, 0.84, 0)
 Status.Size = UDim2.new(0.8, 0, 0, 14)
 Status.BackgroundTransparency = 1
-Status.Text = "SYLPHIN"
-Status.TextColor3 = Color3.fromRGB(150, 150, 155)
+Status.Text = "Initializing SylPhin Hub..."
+Status.TextColor3 = Color3.fromRGB(120, 120, 125)
 Status.TextTransparency = 1
-Status.Font = Enum.Font.GothamBold
-Status.TextSize = 10
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 11
 Status.Parent = Card
 
--- ANIMATION TỰ ĐỘNG BẬT VÀ TẮT INTRO
-task.spawn(function()
-    local tFast = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-    
-    TweenService:Create(DarkOverlay, tFast, {BackgroundTransparency = 0.5}):Play()
-    TweenService:Create(Card, tFast, {BackgroundTransparency = 0}):Play()
-    TweenService:Create(CardStroke, tFast, {Transparency = 0.4}):Play()
-    
-    TweenService:Create(Logo, tFast, {ImageTransparency = 0}):Play()
-    TweenService:Create(Title, tFast, {TextTransparency = 0}):Play()
-    TweenService:Create(SubTitle, tFast, {TextTransparency = 0}):Play()
-    TweenService:Create(ProgressBg, tFast, {BackgroundTransparency = 0}):Play()
-    TweenService:Create(ProgressFill, tFast, {BackgroundTransparency = 0}):Play()
-    TweenService:Create(Status, tFast, {TextTransparency = 0}):Play()
-    
-    TweenService:Create(ProgressFill, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-        Size = UDim2.new(1, 0, 1, 0)
-    }):Play()
-    
-    task.wait(1.4)
-    
-    -- Fade Out
-    local tOut = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-    TweenService:Create(Card, tOut, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(DarkOverlay, tOut, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Logo, tOut, {ImageTransparency = 1}):Play()
-    TweenService:Create(Title, tOut, {TextTransparency = 1}):Play()
-    TweenService:Create(SubTitle, tOut, {TextTransparency = 1}):Play()
-    TweenService:Create(ProgressBg, tOut, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(ProgressFill, tOut, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Status, tOut, {TextTransparency = 1}):Play()
-    
-    task.wait(0.35)
-    IntroGui:Destroy()
-end)
+-- High-level Animation Sequence
+local tweenFast = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local tweenPop = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
----------------------------------------------------------
--- 3. GIAO DIỆN CHÍNH (SYLPHIN HUB)
----------------------------------------------------------
+TweenService:Create(DarkOverlay, tweenFast, {BackgroundTransparency = 0.45}):Play()
+task.wait(0.05)
+
+TweenService:Create(Card, tweenPop, {
+    Position = UDim2.fromScale(0.5, 0.5),
+    BackgroundTransparency = 0.05
+}):Play()
+TweenService:Create(CardStroke, tweenFast, {Transparency = 0.88}):Play()
+task.wait(0.15)
+
+TweenService:Create(Logo, tweenFast, {ImageTransparency = 0}):Play()
+TweenService:Create(Title, tweenFast, {TextTransparency = 0}):Play()
+TweenService:Create(DiscordText, tweenFast, {TextTransparency = 0}):Play()
+TweenService:Create(ProgressBg, tweenFast, {BackgroundTransparency = 0}):Play()
+TweenService:Create(ProgressFill, tweenFast, {BackgroundTransparency = 0}):Play()
+TweenService:Create(Status, tweenFast, {TextTransparency = 0}):Play()
+
+task.wait(0.25)
+
+Status.Text = "Loading scripts & assets..."
+TweenService:Create(ProgressFill, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+    Size = UDim2.new(1, 0, 1, 0)
+}):Play()
+
+task.wait(1.1)
+
+Status.Text = "SYLPHIN"
+Status.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+task.wait(0.7)
+
+local tweenOut = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+
+TweenService:Create(Card, tweenOut, {
+    Position = UDim2.fromScale(0.5, 0.46),
+    BackgroundTransparency = 1
+}):Play()
+TweenService:Create(CardStroke, tweenOut, {Transparency = 1}):Play()
+TweenService:Create(DarkOverlay, tweenOut, {BackgroundTransparency = 1}):Play()
+TweenService:Create(Logo, tweenOut, {ImageTransparency = 1}):Play()
+TweenService:Create(Title, tweenOut, {TextTransparency = 1}):Play()
+TweenService:Create(DiscordText, tweenOut, {TextTransparency = 1}):Play()
+TweenService:Create(ProgressBg, tweenOut, {BackgroundTransparency = 1}):Play()
+TweenService:Create(ProgressFill, tweenOut, {BackgroundTransparency = 1}):Play()
+TweenService:Create(Status, tweenOut, {TextTransparency = 1}):Play()
+
+task.wait(0.45)
+ScreenGui:Destroy()
+
+-- ======================================================
+--                 MAIN SYLPHIN HUB UI
+-- ======================================================
+
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+
+local SylPhinSoundFolder = Instance.new("Folder")
+SylPhinSoundFolder.Name = "SylPhinSounds"
+SylPhinSoundFolder.Parent = SoundService
+
+local SylPhinClickSound = Instance.new("Sound")
+SylPhinClickSound.Name = "SylPhinClick"
+SylPhinClickSound.SoundId = "rbxassetid://6026984224"
+SylPhinClickSound.Volume = 0.30
+SylPhinClickSound.Parent = SylPhinSoundFolder
+
+local function SylPhinPlayClick(speed, volume)
+    pcall(function()
+        SylPhinClickSound:Stop()
+        SylPhinClickSound.TimePosition = 0
+        SylPhinClickSound.PlaybackSpeed = speed or 1
+        SylPhinClickSound.Volume = volume or 0.30
+        SylPhinClickSound:Play()
+    end)
+end
+
+local function SylPhinPlayExecute()
+    SylPhinPlayClick(1.18, 0.34)
+end
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local old = PlayerGui:FindFirstChild("SylPhin")
+if old then
+    old:Destroy()
+end
+
 local Scripts = {
     {Name = "Auto find low player count servers", Code = [[loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Low-Server-Finder-GUI-30660"))()]]},
     {Name = "SODIUM HUB STEAL AN EGG SCRIPT", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/74528f064778ab498a9dde47df0e5206.lua"))()]]},
@@ -197,6 +290,7 @@ local Scripts = {
     {Name = "NEW LENNON", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/4595fe31a5f7a8b4f4dd7071f3119ef7.lua"))()]]},
     {Name = "DECODE KEYLESS", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/ItzYumi/Decode/refs/heads/main/DE%3ACODE.lua", true))()]]},
     {Name = "Bee hub anti kick", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/arjhaysaver-byte/BEE-SCRIPT-./refs/heads/main/ANTI%20KICK%20V4"))()]]},
+    {Name = "script--129. VOIDSHELL HUB (No Key)", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/VoidShell-null/VoidShell-Hub/refs/heads/main/Scripts/StealAnEgg.luau"))()]]},
     {Name = "MIRANDA HUB V3", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/mirandaafk.lua"))()]]},
     {Name = "SPEED HUB GET KEY", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()]]},
     {Name = "VINCITORE KEYLESS", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/idk953072-crypto/Steal-an-Egg/refs/heads/main/vincitore"))()]]},
@@ -204,153 +298,748 @@ local Scripts = {
     {Name = "SHADER", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/robloxscripts2026/simple-shader/refs/heads/main/lua"))()]]},
     {Name = "NEMO HUB RIDE A PET KEYLESS", Code = [[loadstring(game:HttpGet("https://rawscripts.net/raw/Ride-A-Pet-NOKEY-NemoHub-or-or-AUTO-FARM-+-EGG-ESP-+-MORE!-228328"))()]]},
     {Name = "CHILLI HUB", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
+    {Name = "New posted Live Spwan map script", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/LostInSyntaxx/RideAPet/main/loader.lua"))()]]},
+    {Name = "ajjans hub", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"))()]]},
+    {Name = "axon hub", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/97c3f6db55a2cf72141537a85458e5a7.lua"))()]]},
+    {Name = "OMG HUB GET KEY", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua"))()]]},
+    {Name = "zeroin hub", Code = [[loadstring(game:HttpGet("https://zeroinhub.com/api/script"))()]]},
+    {Name = "New Lennon Update", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/ui/584e23b68f5f361081321954763ab5e5.lua"))()]]},
     {Name = "SYLPHIN HUB BLADE BALL", Code = [[loadstring(game:HttpGet("https://gist.githubusercontent.com/virexx55/1ceaa1a6556598d1b739e0f1ca1de4e7/raw/3cdd35760795bd684caa998b7440a4f9b5f8f0af/virex.lua"))()]]},
     {Name = "YOKUDO HUB", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/betdoyvaka/stealanegg/main/Loader.lua"))()]]},
+    {Name = "CHILLI HUB", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
+    {Name = "script--148. ASTRAL HUB (NO KEY)", Code = [[loadstring(game:HttpGet("https://api.polsec.sh/loader/57d088befe906a8e/76f9bde1349c5eb9"))()]]},
+    {Name = "cyrus hub", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/CyrusOffc/scriptcyrus/refs/heads/main/loader"))()]]},
+    {Name = "limbo hub", Code = [[loadstring(game:HttpGet("https://limbohub.my.id/loader.lua"))()]]},
+    {Name = "script--141. KIRA-HUB (NO KEY)", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/LSSOPS/OpenSource/refs/heads/main/KiraHub_Steal_An_Egg.lua"))()]]},
     {Name = "SENA V5 (NO KEY)", Code = [[loadstring(game:HttpGet("https://senahub.xyz/raw/loader"))()]]},
+    {Name = "JANE SCRIPTS", Code = [[loadstring(game:HttpGet("https://synex.lat/loaders/stealegg.lua"))()]]},
+    {Name = "script--139. LUXY HUB (NO KEY)", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/16b55b285584ec6d065913f5d59fb105.lua"))()]]},
 }
 
-local MainGui = Instance.new("ScreenGui")
-MainGui.Name = "SylPhin"
-MainGui.ResetOnSpawn = false
-MainGui.DisplayOrder = 9999
-MainGui.Parent = GuiParent
+local MoreScripts = {
+    {Name = "Script 1", Code = [[_G.loadstring(game:HttpGet("https://raw.githubusercontent.com/Kenniel123/Steal-A-Egg/refs/heads/main/Steal%20A%20Egg"))()]]},
+    {Name = "Script 2", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/mopsscript7-gif/steal-an-egg/refs/heads/main/script.lua"))()]]},
+    {Name = "Script 3", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/NEOXHUBMAIN/refs/heads/main/loader", true))()]]},
+    {Name = "Script 4", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/RyuunOx/Clover/refs/heads/main/main.lua"))()]]},
+    {Name = "Script 5", Code = [[loadstring(game:HttpGet("https://fyycommunity.com/"))()]]},
+    {Name = "Script 6", Code = [[loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/bf52181bce5c28e6becd16eebfa1a88ddaf646c7acb10015fbaa7b30dc7bad0a8/download"))()]]},
+    {Name = "Script 7", Code = [[loadstring(game:HttpGet("https://syshub.fun/free"))()]]},
+    {Name = "Script 8", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/kaisenlmao/loader/refs/heads/main/chiyo.lua"))()]]},
+    {Name = "Script 9", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/stealanegg"))()]]},
+    {Name = "Script 10", Code = [[loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/0199b576f5c2d5a34159f0f9f4e1de0a566b4d1da5b1cfa5d2f71ade9bdcaa24/download"))()]]},
+    {Name = "Script 11", Code = [[loadstring(game:HttpGet("https://gist.githubusercontent.com/spiritualgaming1123-beep/46ef55c5f8284e07b6aafc5ebd12233f4/raw/5b24749c3931c1838a76e64c9af508dcdd03700a/gistfile1.lua"))()]]},
+    {Name = "Script 12", Code = [[loadstring(game:HttpGet("https://loader.sportsclub.fun/loader.luau"))()]]},
+    {Name = "Script 13", Code = [[loadstring(game:HttpGet("https://scriptversekey.xyz/s/steal-an-egg"))()]]},
+    {Name = "Script 14", Code = [[loadstring(game:HttpGet("https://zkcommunity.cloud/loader.lua"))()]]},
+    {Name = "Script 15", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/premiumbuddy/kex/refs/heads/main/kexxxx"))()]]},
+    {Name = "Script 16", Code = [[loadstring(game:HttpGet("https://vxezestudio.online/api/scripts/script_G5CGjqj2X3r0S/stream/init"))()]]},
+    {Name = "Script 17", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/ui/a87f00d9adf63658655fcd02ab86a4ef.lua"))()]]},
+    {Name = "Script 18", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua"))()]]},
+    {Name = "Script 19", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/asvraRoblox/stealegg/refs/heads/main/main"))()]]},
+    {Name = "Script 20", Code = [[loadstring(game:HttpGet("https://www.zeroimpact.online/raw/loader"))()]]},
+    {Name = "Script 21", Code = [[loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/f56794e06dcfb4adad5dc739dff503f38cc94e045eafe823a3c5f09c4cc/download"))()]]},
+    {Name = "Script 22", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/9ee4edde227ac85f50872bf9e4226508.lua"))()]]},
+    {Name = "Script 23", Code = [[loadstring(game:HttpGet("https://hoshihub.site/loader.lua"))()]]},
+    {Name = "Script 24", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/97c3f6db55a2cf72141537a85458e5a7.lua"))()]]},
+    {Name = "Script 25", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/5946add9ab91f1e04cb005346a8b1968.lua"))()]]},
+    {Name = "Script 26", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/MisterNovitski/Vantage/refs/heads/main/mm2.txt", true))()]]},
+    {Name = "Script 27", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/NovaHubRBLX/NovaHub/refs/heads/main/novahub.lua"))()]]},
+    {Name = "Script 28", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/virtuososvisualedits-prog/Ww/refs/heads/main/final-obfuscated.lua"))()]]},
+    {Name = "Script 29", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/x2zu/loader/main/freeloader.lua", true))()]]},
+    {Name = "Script 30", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/bao8jl/solixhub/main/loader"))()]]},
+    {Name = "Script 31", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()]]},
+    {Name = "Script 32", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/JualNasiRendang/loader/refs/heads/main/main.lua"))()]]},
+    {Name = "Script 33", Code = [[loadstring(game:HttpGet("http://luminon.top/loader.lua"))()]]},
+    {Name = "Script 34", Code = [[loadstring(game:HttpGet("https://airflowscript.com/loader"))()]]},
+    {Name = "Script 35", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/iLove-yuri/leeeeesbian/refs/heads/main/homumado.lua"))()]]},
+    {Name = "Script 36", Code = [[loadstring(game:HttpGet("https://api.saiops.cc/scripts/Steal-An-Egg-Script.lua"))()]]},
+    {Name = "Script 37", Code = [[loadstring(game:HttpGet("https://api.valincsyndicate.com/v1/releases/5502cba03703f4a3628d522d396b80d8.lua"))()]]},
+    {Name = "Script 38", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/TeamUBHub/UBLoader/refs/heads/main/Loader.lua"))()]]},
+    {Name = "Script 39", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem"))()]]},
+    {Name = "Script 40", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/69d3463240384f3a73fbe32c178093a2.lua"))()]]},
+    {Name = "Script 41", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2"))()]]},
+    {Name = "Script 42", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua"))()]]},
+    {Name = "Script 43", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"))()]]},
+    {Name = "Script 44", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]},
+    {Name = "Script 45", Code = [[loadstring(game:HttpGet("https://pastefy.app/alzaPmW9/raw"))()]]}
+}
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.Position = UDim2.fromScale(0.5, 0.5)
-MainFrame.Size = UDim2.fromOffset(380, 280)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = MainGui
+local Themes = {
+    {Name = "SylPhin Red", Main = Color3.fromRGB(8, 16, 30), Panel = Color3.fromRGB(13, 27, 46), Accent = Color3.fromRGB(255, 72, 72), ButtonDark = Color3.fromRGB(95, 8, 18)},
+    {Name = "SylPhin Purple", Main = Color3.fromRGB(18, 17, 25), Panel = Color3.fromRGB(27, 24, 36), Accent = Color3.fromRGB(160, 100, 255), ButtonDark = Color3.fromRGB(72, 35, 120)},
+    {Name = "SylPhin Blue", Main = Color3.fromRGB(15, 19, 26), Panel = Color3.fromRGB(23, 29, 40), Accent = Color3.fromRGB(75, 145, 255), ButtonDark = Color3.fromRGB(18, 55, 105)},
+    {Name = "SylPhin Gold", Main = Color3.fromRGB(22, 20, 16), Panel = Color3.fromRGB(31, 28, 21), Accent = Color3.fromRGB(255, 190, 65), ButtonDark = Color3.fromRGB(105, 72, 12)},
+    {Name = "SylPhin Green", Main = Color3.fromRGB(15, 22, 19), Panel = Color3.fromRGB(22, 32, 27), Accent = Color3.fromRGB(75, 220, 135), ButtonDark = Color3.fromRGB(18, 92, 55)},
+}
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = MainFrame
+local ThemeIndex = 1
+local SizeIndex = 2
+local Sizes = {
+    UDim2.fromOffset(320, 250),
+    UDim2.fromOffset(360, 285),
+    UDim2.fromOffset(410, 325),
+}
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(255, 60, 60)
-MainStroke.Thickness = 1.5
-MainStroke.Parent = MainFrame
+local function tween(obj, info, props)
+    local t = TweenService:Create(obj, info, props)
+    t:Play()
+    return t
+end
 
-local TopBar = Instance.new("Frame")
-TopBar.Name = "TopBar"
-TopBar.Size = UDim2.new(1, 0, 0, 42)
-TopBar.BackgroundColor3 = Color3.fromRGB(15, 16, 20)
-TopBar.BorderSizePixel = 0
-TopBar.Parent = MainFrame
+local gui = Instance.new("ScreenGui")
+gui.Name = "SylPhin"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 9999
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = PlayerGui
 
-local TopBarCorner = Instance.new("UICorner")
-TopBarCorner.CornerRadius = UDim.new(0, 12)
-TopBarCorner.Parent = TopBar
+local scale = Instance.new("UIScale")
+scale.Scale = 0.88
+scale.Parent = gui
 
-local HeaderTitle = Instance.new("TextLabel")
-HeaderTitle.Size = UDim2.new(1, -50, 1, 0)
-HeaderTitle.Position = UDim2.fromOffset(12, 0)
-HeaderTitle.BackgroundTransparency = 1
-HeaderTitle.Text = "SYLPHIN HUB"
-HeaderTitle.Font = Enum.Font.GothamBold
-HeaderTitle.TextSize = 14
-HeaderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
-HeaderTitle.Parent = TopBar
+local shadow = Instance.new("Frame")
+shadow.Name = "Shadow"
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.fromScale(0.5, 0.52)
+shadow.Size = Sizes[SizeIndex]
+shadow.BackgroundColor3 = Color3.new(0,0,0)
+shadow.BackgroundTransparency = 0.45
+shadow.BorderSizePixel = 0
+shadow.Parent = gui
 
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.fromOffset(28, 28)
-CloseBtn.Position = UDim2.new(1, -34, 0.5, -14)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-CloseBtn.Text = "✕"
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = 12
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Parent = TopBar
+local shadowCorner = Instance.new("UICorner")
+shadowCorner.CornerRadius = UDim.new(0, 16)
+shadowCorner.Parent = shadow
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 6)
-CloseCorner.Parent = CloseBtn
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.Position = UDim2.fromScale(0.5, 0.48)
+main.Size = Sizes[SizeIndex]
+main.BackgroundColor3 = Color3.fromRGB(8, 16, 30)
+main.BorderSizePixel = 0
+main.ClipsDescendants = true
+main.Parent = gui
 
-CloseBtn.Activated:Connect(function()
-    MainGui:Destroy()
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.Parent = main
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 1.2
+stroke.Color = Themes[ThemeIndex].Accent
+stroke.Transparency = 0.45
+stroke.Parent = main
+
+local top = Instance.new("Frame")
+top.Name = "TopBar"
+top.Size = UDim2.new(1, 0, 0, 55)
+top.BackgroundTransparency = 1
+top.Parent = main
+
+-- 2. Logo trên thanh tiêu đề (TopBar)
+local HeaderLogo = Instance.new("ImageLabel")
+HeaderLogo.Name = "HeaderLogo"
+HeaderLogo.AnchorPoint = Vector2.new(0, 0.5)
+HeaderLogo.Position = UDim2.new(0, 14, 0.5, 0)
+HeaderLogo.Size = UDim2.fromOffset(32, 32)
+HeaderLogo.BackgroundTransparency = 1
+HeaderLogo.Image = LOGO_ASSET
+HeaderLogo.ImageColor3 = Color3.fromRGB(255, 255, 255)
+HeaderLogo.ScaleType = Enum.ScaleType.Fit
+HeaderLogo.Parent = top
+
+local title = Instance.new("TextLabel")
+title.BackgroundTransparency = 1
+title.Position = UDim2.fromOffset(54, 3)
+title.Size = UDim2.new(1, -128, 0, 28)
+title.Font = Enum.Font.GothamBlack
+title.Text = "SYLPHIN"
+title.TextSize = 21
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = top
+
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Rotation = 0
+titleGradient.Offset = Vector2.new(1.2, 0)
+titleGradient.Parent = title
+
+local SylPhinRed = Color3.fromRGB(255, 72, 72)
+local SylPhinWhite = Color3.fromRGB(255, 255, 255)
+
+titleGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, SylPhinRed),
+    ColorSequenceKeypoint.new(0.18, SylPhinRed),
+    ColorSequenceKeypoint.new(0.34, SylPhinWhite),
+    ColorSequenceKeypoint.new(0.50, SylPhinRed),
+    ColorSequenceKeypoint.new(0.66, SylPhinRed),
+    ColorSequenceKeypoint.new(0.82, SylPhinWhite),
+    ColorSequenceKeypoint.new(1.00, SylPhinRed)
+})
+
+task.spawn(function()
+    while gui.Parent and title.Parent do
+        titleGradient.Offset = Vector2.new(1.2, 0)
+        local t = tween(titleGradient, TweenInfo.new(1.15, Enum.EasingStyle.Linear), {
+            Offset = Vector2.new(-1.2, 0)
+        })
+        t.Completed:Wait()
+    end
 end)
 
-local ScrollContainer = Instance.new("ScrollingFrame")
-ScrollContainer.Position = UDim2.fromOffset(10, 48)
-ScrollContainer.Size = UDim2.new(1, -20, 1, -56)
-ScrollContainer.BackgroundTransparency = 1
-ScrollContainer.ScrollBarThickness = 4
-ScrollContainer.ScrollBarImageColor3 = Color3.fromRGB(255, 60, 60)
-ScrollContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
-ScrollContainer.Parent = MainFrame
+local subtitle = Instance.new("TextLabel")
+subtitle.BackgroundTransparency = 1
+subtitle.Position = UDim2.new(0, 54, 0, 29)
+subtitle.Size = UDim2.new(1, -116, 0, 16)
+subtitle.Font = Enum.Font.Gotham
+subtitle.Text = "SCRIPT HUB"
+subtitle.TextSize = 10
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.TextColor3 = Color3.fromRGB(145,145,155)
+subtitle.Parent = top
 
-local UIList = Instance.new("UIListLayout")
-UIList.Padding = UDim.new(0, 6)
-UIList.Parent = ScrollContainer
+local function topButton(text, x)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.fromOffset(30, 28)
+    b.Position = UDim2.new(1, x, 0, 8)
+    b.AnchorPoint = Vector2.new(1, 0)
+    b.BackgroundColor3 = Color3.fromRGB(13, 27, 46)
+    b.BorderSizePixel = 0
+    b.Text = text
+    b.Font = Enum.Font.FredokaOne
+    b.TextSize = 14
+    b.TextColor3 = Color3.new(1,1,1)
+    b.AutoButtonColor = false
+    b.Parent = top
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 8)
+    c.Parent = b
+    return b
+end
 
-for _, scriptData in ipairs(Scripts) do
-    local ItemFrame = Instance.new("Frame")
-    ItemFrame.Size = UDim2.new(1, -6, 0, 38)
-    ItemFrame.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
-    ItemFrame.Parent = ScrollContainer
+local minimize = topButton("—", -52)
+local close = topButton("×", -8)
 
-    local ItemCorner = Instance.new("UICorner")
-    ItemCorner.CornerRadius = UDim.new(0, 8)
-    ItemCorner.Parent = ItemFrame
+local dragHandle = Instance.new("TextButton")
+dragHandle.Name = "SylPhinDragHandle"
+dragHandle.AnchorPoint = Vector2.new(0.5, 0.5)
+dragHandle.Size = UDim2.fromOffset(110, 16)
+dragHandle.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
+dragHandle.BackgroundTransparency = 1
+dragHandle.BorderSizePixel = 0
+dragHandle.Text = ""
+dragHandle.AutoButtonColor = false
+dragHandle.ZIndex = 60
+dragHandle.Visible = false
+dragHandle.Parent = gui
 
-    local NameLabel = Instance.new("TextLabel")
-    NameLabel.Position = UDim2.fromOffset(10, 0)
-    NameLabel.Size = UDim2.new(1, -85, 1, 0)
-    NameLabel.BackgroundTransparency = 1
-    NameLabel.Text = scriptData.Name
-    NameLabel.Font = Enum.Font.GothamSemibold
-    NameLabel.TextSize = 11
-    NameLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
-    NameLabel.TextXAlignment = Enum.TextXAlignment.Left
-    NameLabel.TextTruncate = Enum.TextTruncate.AtEnd
-    NameLabel.Parent = ItemFrame
+local dragVisual = Instance.new("Frame")
+dragVisual.Name = "Line"
+dragVisual.AnchorPoint = Vector2.new(0.5, 0.5)
+dragVisual.Position = UDim2.fromScale(0.5, 0.5)
+dragVisual.Size = UDim2.fromOffset(76, 3)
+dragVisual.BackgroundColor3 = Themes[ThemeIndex].Accent
+dragVisual.BackgroundTransparency = 0.10
+dragVisual.BorderSizePixel = 0
+dragVisual.ZIndex = 61
+dragVisual.Parent = dragHandle
+local dragVisualCorner = Instance.new("UICorner")
+dragVisualCorner.CornerRadius = UDim.new(1, 0)
+dragVisualCorner.Parent = dragVisual
 
-    local RunBtn = Instance.new("TextButton")
-    RunBtn.Size = UDim2.fromOffset(65, 26)
-    RunBtn.Position = UDim2.new(1, -72, 0.5, -13)
-    RunBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-    RunBtn.Text = "RUN"
-    RunBtn.Font = Enum.Font.GothamBold
-    RunBtn.TextSize = 11
-    RunBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    RunBtn.Parent = ItemFrame
+local resizeHandle = Instance.new("TextButton")
+resizeHandle.Name = "SylPhinResizeHandle"
+resizeHandle.AnchorPoint = Vector2.new(0.5, 0.5)
+resizeHandle.Size = UDim2.fromOffset(30, 30)
+resizeHandle.BackgroundTransparency = 1
+resizeHandle.BorderSizePixel = 0
+resizeHandle.Text = "↘"
+resizeHandle.Font = Enum.Font.GothamBlack
+resizeHandle.TextSize = 18
+resizeHandle.TextColor3 = Themes[ThemeIndex].Accent
+resizeHandle.AutoButtonColor = false
+resizeHandle.ZIndex = 70
+resizeHandle.Visible = false
+resizeHandle.Parent = gui
 
-    local RunCorner = Instance.new("UICorner")
-    RunCorner.CornerRadius = UDim.new(0, 6)
-    RunCorner.Parent = RunBtn
+local function updateFloatingControls()
+    local x = main.Position.X.Scale
+    local ox = main.Position.X.Offset
+    local y = main.Position.Y.Scale
+    local oy = main.Position.Y.Offset
+    local halfW = main.AbsoluteSize.X * 0.5
+    local halfH = main.AbsoluteSize.Y * 0.5
+    dragHandle.Position = UDim2.new(x, ox, y, oy + halfH + 12)
+    resizeHandle.Position = UDim2.new(x, ox + halfW + 15, y, oy + halfH + 15)
+end
 
-    RunBtn.Activated:Connect(function()
-        RunBtn.Text = "..."
-        pcall(function()
-            loadstring(scriptData.Code)()
-        end)
-        task.wait(0.5)
-        RunBtn.Text = "RUN"
+local sidebar = Instance.new("Frame")
+sidebar.Name = "Sidebar"
+sidebar.Position = UDim2.fromOffset(8, 61)
+sidebar.Size = UDim2.new(0, 98, 1, -69)
+sidebar.BackgroundColor3 = Color3.fromRGB(13, 27, 46)
+sidebar.BorderSizePixel = 0
+sidebar.Parent = main
+
+local sideCorner = Instance.new("UICorner")
+sideCorner.CornerRadius = UDim.new(0, 12)
+sideCorner.Parent = sidebar
+
+local sideLayout = Instance.new("UIListLayout")
+sideLayout.Padding = UDim.new(0, 7)
+sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sideLayout.SortOrder = Enum.SortOrder.LayoutOrder
+sideLayout.Parent = sidebar
+
+local sidePad = Instance.new("UIPadding")
+sidePad.PaddingTop = UDim.new(0, 9)
+sidePad.PaddingBottom = UDim.new(0, 8)
+sidePad.Parent = sidebar
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Position = UDim2.new(0, 114, 0, 61)
+content.Size = UDim2.new(1, -122, 1, -69)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+local currentTab = "Scripts"
+local pages = {}
+
+local function makePage(name)
+    local page = Instance.new("ScrollingFrame")
+    page.Name = name
+    page.Size = UDim2.fromScale(1,1)
+    page.BackgroundTransparency = 1
+    page.BorderSizePixel = 0
+    page.ScrollBarThickness = 3
+    page.ScrollBarImageColor3 = Themes[ThemeIndex].Accent
+    page.CanvasSize = UDim2.new()
+    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    page.ScrollingDirection = Enum.ScrollingDirection.Y
+    page.Visible = (name == "Scripts")
+    page.Parent = content
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 7)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = page
+
+    local pad = Instance.new("UIPadding")
+    pad.PaddingRight = UDim.new(0, 4)
+    pad.PaddingBottom = UDim.new(0, 8)
+    pad.Parent = page
+
+    pages[name] = page
+    return page
+end
+
+local scriptsPage = makePage("Scripts")
+local morePage = makePage("More Scripts")
+local configPage = makePage("Config")
+
+local tabButtons = {}
+local tabSweepTokens = {}
+
+local function makeTab(text, icon)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, -12, 0, 39)
+    b.BackgroundColor3 = Themes[ThemeIndex].Panel
+    b.BorderSizePixel = 0
+    b.Text = ""
+    b.AutoButtonColor = false
+    b.Parent = sidebar
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 9)
+    c.Parent = b
+
+    local sweepBg = Instance.new("Frame")
+    sweepBg.Name = "SelectedDarkBlueWhiteSweep"
+    sweepBg.Size = UDim2.fromScale(1, 1)
+    sweepBg.BackgroundColor3 = Themes[ThemeIndex].Accent
+    sweepBg.BorderSizePixel = 0
+    sweepBg.Visible = false
+    sweepBg.ZIndex = b.ZIndex + 1
+    sweepBg.Parent = b
+    local sweepCorner = Instance.new("UICorner")
+    sweepCorner.CornerRadius = UDim.new(0, 9)
+    sweepCorner.Parent = sweepBg
+    local sweep = Instance.new("UIGradient")
+    sweep.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Themes[ThemeIndex].Accent),
+        ColorSequenceKeypoint.new(0.40, Themes[ThemeIndex].Accent),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.60, Themes[ThemeIndex].Accent),
+        ColorSequenceKeypoint.new(1.00, Themes[ThemeIndex].Accent)
+    })
+    sweep.Rotation = 0
+    sweep.Offset = Vector2.new(1.15, 0)
+    sweep.Parent = sweepBg
+
+    local label = Instance.new("TextLabel")
+    label.Name = "TabLabel"
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.fromScale(1, 1)
+    label.Text = icon .. "  " .. text
+    label.Font = Enum.Font.FredokaOne
+    label.TextSize = 11
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Position = UDim2.fromOffset(10, 0)
+    label.ZIndex = b.ZIndex + 2
+    label.Parent = b
+
+    tabButtons[text] = b
+    return b
+end
+
+local scriptsTab = makeTab("Scripts", "▣")
+local moreTab = makeTab("More", "＋")
+local configTab = makeTab("Config", "⚙")
+
+local function refreshTabs()
+    for name, b in pairs(tabButtons) do
+        local selected = (name == "Scripts" and currentTab == "Scripts")
+            or (name == "More" and currentTab == "More Scripts")
+            or (name == "Config" and currentTab == "Config")
+        local sweepBg = b:FindFirstChild("SelectedDarkBlueWhiteSweep")
+        local sweep = sweepBg and sweepBg:FindFirstChildOfClass("UIGradient")
+        local tabLabel = b:FindFirstChild("TabLabel")
+        if selected then
+            b.BackgroundColor3 = Themes[ThemeIndex].Panel
+            if sweepBg then sweepBg.Visible = true end
+            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255,255,255); tabLabel.TextSize = 12 end
+            tween(b, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, -8, 0, 44)})
+            if sweep then
+                tabSweepTokens[name] = (tabSweepTokens[name] or 0) + 1
+                local token = tabSweepTokens[name]
+                task.spawn(function()
+                    while gui.Parent and currentTab == ((name == "More") and "More Scripts" or name) and tabSweepTokens[name] == token and b.Parent do
+                        sweep.Offset = Vector2.new(1.15, 0)
+                        local tw = tween(sweep, TweenInfo.new(1.8, Enum.EasingStyle.Linear), {Offset = Vector2.new(-1.15, 0)})
+                        tw.Completed:Wait()
+                    end
+                end)
+            end
+        else
+            tabSweepTokens[name] = (tabSweepTokens[name] or 0) + 1
+            if sweepBg then sweepBg.Visible = false end
+            b.BackgroundColor3 = Themes[ThemeIndex].Panel
+            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255,255,255); tabLabel.TextSize = 11 end
+            tween(b, TweenInfo.new(0.12, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -12, 0, 39)})
+        end
+    end
+
+    for name, page in pairs(pages) do
+        page.Visible = (name == currentTab)
+        if page.Visible then
+            page.CanvasPosition = Vector2.zero
+        end
+    end
+end
+
+local function switchTab(tab)
+    currentTab = tab
+    refreshTabs()
+end
+
+scriptsTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("Scripts") end)
+moreTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("More Scripts") end)
+configTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("Config") end)
+
+local function execute(code, button)
+    SylPhinPlayExecute()
+    local oldText = button.Text
+    button.Text = "LOADING..."
+    task.spawn(function()
+        local ok, fnOrErr = pcall(loadstring, code)
+        if ok and type(fnOrErr) == "function" then
+            task.spawn(function()
+                local ran, err = pcall(fnOrErr)
+                if not ran then warn("[SylPhin] Script error:", err) end
+            end)
+            button.Text = "EXECUTED ✓"
+        else
+            warn("[SylPhin] Load error:", fnOrErr)
+            button.Text = "ERROR"
+        end
+        task.wait(0.8)
+        if button and button.Parent then
+            button.Text = oldText
+        end
     end)
 end
 
--- Kéo thả UI
-local dragging, dragStart, startPos
-TopBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
+local function addScriptCard(parent, name, code)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, -4, 0, 58)
+    card.BackgroundColor3 = Color3.fromRGB(13, 27, 46)
+    card.BorderSizePixel = 0
+    card.Parent = parent
+
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 10)
+    c.Parent = card
+
+    local s = Instance.new("UIStroke")
+    s.Color = Color3.fromRGB(55,55,65)
+    s.Transparency = 0.5
+    s.Parent = card
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.fromOffset(10, 7)
+    label.Size = UDim2.new(1, -95, 0, 40)
+    label.Font = Enum.Font.FredokaOne
+    label.Text = name
+    label.TextSize = 11
+    label.TextWrapped = true
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.TextColor3 = Color3.new(1,1,1)
+    label.Parent = card
+
+    local run = Instance.new("TextButton")
+    run.Name = "RUN"
+    run.Size = UDim2.fromOffset(72, 31)
+    run.Position = UDim2.new(1, -82, 0.5, 0)
+    run.AnchorPoint = Vector2.new(0, 0.5)
+    run.BackgroundTransparency = 1
+    run.BorderSizePixel = 0
+    run.Text = ""
+    run.AutoButtonColor = false
+    run.Parent = card
+
+    local runBg = Instance.new("Frame")
+    runBg.Name = "RunBackground"
+    runBg.Size = UDim2.fromScale(1,1)
+    runBg.BackgroundColor3 = Color3.fromRGB(95, 8, 18)
+    runBg.BorderSizePixel = 0
+    runBg.ZIndex = run.ZIndex
+    runBg.Parent = run
+    local runCorner = Instance.new("UICorner")
+    runCorner.CornerRadius = UDim.new(0, 8)
+    runCorner.Parent = runBg
+    local runGradient = Instance.new("UIGradient")
+    runGradient.Name = "RunWhiteDarkRedSweep"
+    runGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Themes[ThemeIndex].ButtonDark),
+        ColorSequenceKeypoint.new(0.40, Themes[ThemeIndex].ButtonDark),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.60, Themes[ThemeIndex].ButtonDark),
+        ColorSequenceKeypoint.new(1.00, Themes[ThemeIndex].ButtonDark)
+    })
+    runGradient.Rotation = 0
+    runGradient.Offset = Vector2.new(1.15, 0)
+    runGradient.Parent = runBg
+    local runLabel = Instance.new("TextLabel")
+    runLabel.Name = "RunLabel"
+    runLabel.BackgroundTransparency = 1
+    runLabel.Size = UDim2.fromScale(1,1)
+    runLabel.Text = "RUN"
+    runLabel.Font = Enum.Font.FredokaOne
+    runLabel.TextSize = 10
+    runLabel.TextColor3 = Color3.new(1,1,1)
+    runLabel.ZIndex = run.ZIndex + 1
+    runLabel.Parent = run
+    task.spawn(function()
+        while gui.Parent and run.Parent do
+            runGradient.Offset = Vector2.new(1.15, 0)
+            local tw = tween(runGradient, TweenInfo.new(2.0, Enum.EasingStyle.Linear), {Offset = Vector2.new(-1.15, 0)})
+            tw.Completed:Wait()
+            task.wait(0.10)
+        end
+    end)
+
+    run.Activated:Connect(function()
+        execute(code, run)
+    end)
+
+    run.MouseEnter:Connect(function()
+        tween(run, TweenInfo.new(0.12), {Size = UDim2.fromOffset(75, 33)})
+    end)
+    run.MouseLeave:Connect(function()
+        tween(run, TweenInfo.new(0.12), {Size = UDim2.fromOffset(72, 31)})
+    end)
+end
+
+for _, entry in ipairs(Scripts) do
+    addScriptCard(scriptsPage, entry.Name, entry.Code)
+end
+
+for _, entry in ipairs(MoreScripts) do
+    addScriptCard(morePage, entry.Name, entry.Code)
+end
+
+-- 3. Nút ẩn/hiện giao diện (Toggle Button / Open Button)
+local openButton = Instance.new("ImageButton")
+openButton.Name = "SylphinToggle"
+openButton.AnchorPoint = Vector2.new(0, 1)
+openButton.Position = UDim2.new(0, 14, 1, -14)
+openButton.Size = UDim2.fromOffset(42, 42)
+openButton.BackgroundColor3 = Themes[ThemeIndex].Accent
+openButton.BorderSizePixel = 0
+openButton.Image = LOGO_ASSET
+openButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
+openButton.ScaleType = Enum.ScaleType.Fit
+openButton.Visible = false
+openButton.Parent = gui
+
+local oc = Instance.new("UICorner")
+oc.CornerRadius = UDim.new(0, 11)
+oc.Parent = openButton
+
+local openStroke = Instance.new("UIStroke")
+openStroke.Thickness = 1.2
+openStroke.Color = Color3.fromRGB(255, 255, 255)
+openStroke.Transparency = 0.6
+openStroke.Parent = openButton
+
+-- Dragging & Floating Logic
+local dragging = false
+local dragStart, startPos, dragSource
+
+local function beginDrag(input, source)
+    dragging = true
+    dragSource = source
+    dragStart = input.Position
+    startPos = main.Position
+    if source == dragHandle then
+        tween(dragHandle, TweenInfo.new(0.10, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Size = UDim2.fromOffset(136, 22),
+            BackgroundTransparency = 1
+        })
+        tween(dragVisual, TweenInfo.new(0.10, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Size = UDim2.fromOffset(108, 6),
+            BackgroundTransparency = 0
+        })
+    end
+end
+
+local function updateDrag(input)
+    if not dragging then return end
+    local delta = input.Position - dragStart
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1920, 1080)
+    local halfW = main.AbsoluteSize.X * 0.5
+    local halfH = main.AbsoluteSize.Y * 0.5
+    local minX = -viewport.X * 0.5 + halfW + 4
+    local maxX = viewport.X * 0.5 - halfW - 4
+    local minY = -viewport.Y * 0.5 + halfH + 4
+    local maxY = viewport.Y * 0.5 - halfH - 4
+    local ox = math.clamp(startPos.X.Offset + delta.X, minX, maxX)
+    local oy = math.clamp(startPos.Y.Offset + delta.Y, minY, maxY)
+    local newPos = UDim2.new(0.5, ox, 0.5, oy)
+    main.Position = newPos
+    shadow.Position = newPos
+    updateFloatingControls()
+end
+
+local function endDrag(input)
+    if input.UserInputType ~= Enum.UserInputType.MouseButton1
+    and input.UserInputType ~= Enum.UserInputType.Touch then return end
+    dragging = false
+    if dragSource == dragHandle then
+        tween(dragHandle, TweenInfo.new(0.16, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Size = UDim2.fromOffset(110, 16),
+            BackgroundTransparency = 1
+        })
+        tween(dragVisual, TweenInfo.new(0.16, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Size = UDim2.fromOffset(76, 3),
+            BackgroundTransparency = 0.10
+        })
+    end
+    dragSource = nil
+end
+
+dragHandle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        beginDrag(input, dragHandle)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+UIS.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+    or input.UserInputType == Enum.UserInputType.Touch then
+        updateDrag(input)
     end
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
+UIS.InputEnded:Connect(function(input)
+    endDrag(input)
+end)
+
+local mainScale = Instance.new("UIScale")
+mainScale.Scale = 1
+mainScale.Parent = main
+
+local shadowScale = Instance.new("UIScale")
+shadowScale.Scale = 1
+shadowScale.Parent = shadow
+
+local function closeGui()
+    if not main.Visible then return end
+    local outInfo = TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+    local savedClosePosition = main.Position
+    local leftExitPosition = UDim2.new(
+        savedClosePosition.X.Scale, savedClosePosition.X.Offset - 42,
+        savedClosePosition.Y.Scale, savedClosePosition.Y.Offset
+    )
+    local closeW = math.max(320, main.Size.X.Offset)
+    local closeH = math.max(245, main.Size.Y.Offset)
+    tween(mainScale, outInfo, {Scale = 0.94})
+    tween(shadowScale, outInfo, {Scale = 0.94})
+    tween(main, outInfo, {BackgroundTransparency = 1, Position = leftExitPosition, Size = UDim2.fromOffset(closeW, closeH)})
+    tween(shadow, outInfo, {BackgroundTransparency = 1, Position = leftExitPosition, Size = UDim2.fromOffset(closeW, closeH)})
+    task.wait(0.33)
+    main.Visible = false
+    shadow.Visible = false
+    dragHandle.Visible = false
+    resizeHandle.Visible = false
+    main.BackgroundTransparency = 1
+    shadow.BackgroundTransparency = 1
+    main.Size = Sizes[SizeIndex]
+    shadow.Size = Sizes[SizeIndex]
+    main.Position = savedClosePosition
+    shadow.Position = savedClosePosition
+    mainScale.Scale = 1
+    shadowScale.Scale = 1
+    updateFloatingControls()
+    openButton.Visible = true
+    tween(openButton, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.fromOffset(42, 42)
+    })
+end
+
+local function openGui()
+    openButton.Visible = false
+    main.Visible = true
+    shadow.Visible = true
+    mainScale.Scale = 0.72
+    shadowScale.Scale = 0.72
+    main.BackgroundTransparency = 0
+    shadow.BackgroundTransparency = 0.45
+    dragHandle.Visible = true
+    resizeHandle.Visible = true
+    updateFloatingControls()
+    tween(mainScale, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
+    tween(shadowScale, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
+end
+
+close.Activated:Connect(function() SylPhinPlayClick(); closeGui() end)
+openButton.Activated:Connect(function() SylPhinPlayClick(); openGui() end)
+
+RunService.RenderStepped:Connect(function()
+    if gui.Parent and (main.Visible or dragHandle.Visible or resizeHandle.Visible) then
+        updateFloatingControls()
     end
 end)
+
+main.Visible = true
+shadow.Visible = true
+dragHandle.Visible = true
+resizeHandle.Visible = true
+refreshTabs()
