@@ -2,30 +2,25 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Cấu hình Logo & Tải ảnh từ URL
+-- Configuration
 local fileName = "sylphin_logo.png"
 local imageUrl = "https://files.catbox.moe/0iwbgk.png"
-local LOGO_ASSET = "rbxassetid://85095067560330" -- Fallback ID nếu executor không hỗ trợ getcustomasset
 
-if isfile and writefile and getcustomasset then
-    pcall(function()
-        if not isfile(fileName) then
-            writefile(fileName, game:HttpGet(imageUrl))
-        end
-        LOGO_ASSET = getcustomasset(fileName)
-    end)
+if not isfile(fileName) then
+    writefile(fileName, game:HttpGet(imageUrl))
 end
 
+local ASSET_LOGO = getcustomasset(fileName)
 local DISCORD_LINK = "https://discord.gg/sylphins"
 
--- Tự động sao chép Discord link vào bộ nhớ tạm
+-- Auto-copy Discord link to clipboard
 if setclipboard then
     pcall(function()
         setclipboard(DISCORD_LINK)
     end)
 end
 
--- ScreenGui Setup (Hỗ trợ Executor Parent Safeguards)
+-- ScreenGui Setup (Supports Executor Parent Safeguards)
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local GuiParent = (gethui and gethui()) or (syn and syn.protect_gui and PlayerGui) or PlayerGui
 
@@ -48,14 +43,14 @@ DarkOverlay.Parent = ScreenGui
 local Card = Instance.new("Frame")
 Card.Name = "Card"
 Card.AnchorPoint = Vector2.new(0.5, 0.5)
-Card.Position = UDim2.fromScale(0.5, 0.54)
+Card.Position = UDim2.fromScale(0.5, 0.54) -- Slightly lower for smooth pop-up tween
 Card.Size = UDim2.fromOffset(360, 220)
 Card.BackgroundColor3 = Color3.fromRGB(14, 14, 16)
 Card.BackgroundTransparency = 1
 Card.ClipsDescendants = true
 Card.Parent = ScreenGui
 
--- Gradient Background Animation
+-- Strong black/white background sweep for the loading card.
 local LoadingBgGradient = Instance.new("UIGradient")
 LoadingBgGradient.Name = "LoadingBlackWhiteSweep"
 LoadingBgGradient.Color = ColorSequence.new({
@@ -98,15 +93,14 @@ CardStroke.Thickness = 1.2
 CardStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 CardStroke.Parent = Card
 
--- 1. Logo màn hình Intro
+-- Logo Image
 local Logo = Instance.new("ImageLabel")
-Logo.Name = "IntroLogo"
+Logo.Name = "Logo"
 Logo.AnchorPoint = Vector2.new(0.5, 0)
 Logo.Position = UDim2.new(0.5, 0, 0.12, 0)
 Logo.Size = UDim2.fromOffset(56, 56)
 Logo.BackgroundTransparency = 1
-Logo.Image = LOGO_ASSET
-Logo.ImageColor3 = Color3.fromRGB(255, 255, 255)
+Logo.Image = ASSET_LOGO
 Logo.ImageTransparency = 1
 Logo.ScaleType = Enum.ScaleType.Fit
 Logo.Parent = Card
@@ -186,13 +180,18 @@ Status.Font = Enum.Font.Gotham
 Status.TextSize = 11
 Status.Parent = Card
 
--- High-level Animation Sequence
+-- ======================================================
+--                 ANIMATION SEQUENCE
+-- ======================================================
+
 local tweenFast = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local tweenPop = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
+-- 1. Dim Background
 TweenService:Create(DarkOverlay, tweenFast, {BackgroundTransparency = 0.45}):Play()
 task.wait(0.05)
 
+-- 2. Pop-up Intro Card
 TweenService:Create(Card, tweenPop, {
     Position = UDim2.fromScale(0.5, 0.5),
     BackgroundTransparency = 0.05
@@ -200,6 +199,7 @@ TweenService:Create(Card, tweenPop, {
 TweenService:Create(CardStroke, tweenFast, {Transparency = 0.88}):Play()
 task.wait(0.15)
 
+-- 3. Fade elements in
 TweenService:Create(Logo, tweenFast, {ImageTransparency = 0}):Play()
 TweenService:Create(Title, tweenFast, {TextTransparency = 0}):Play()
 TweenService:Create(DiscordText, tweenFast, {TextTransparency = 0}):Play()
@@ -209,6 +209,7 @@ TweenService:Create(Status, tweenFast, {TextTransparency = 0}):Play()
 
 task.wait(0.25)
 
+-- 4. Animate Loading Bar
 Status.Text = "Loading scripts & assets..."
 TweenService:Create(ProgressFill, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
     Size = UDim2.new(1, 0, 1, 0)
@@ -216,11 +217,13 @@ TweenService:Create(ProgressFill, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum
 
 task.wait(1.1)
 
+-- 5. Complete Status
 Status.Text = "SYLPHIN"
 Status.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 task.wait(0.7)
 
+-- 6. Fade Out Animation
 local tweenOut = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 
 TweenService:Create(Card, tweenOut, {
@@ -237,14 +240,18 @@ TweenService:Create(ProgressFill, tweenOut, {BackgroundTransparency = 1}):Play()
 TweenService:Create(Status, tweenOut, {TextTransparency = 1}):Play()
 
 task.wait(0.45)
+
+-- Clean up intro GUI
 ScreenGui:Destroy()
 
 -- ======================================================
---                 MAIN SYLPHIN HUB UI
+--          PUT YOUR MAIN SYLPHIN HUB UI SCRIPT BELOW
 -- ======================================================
 
+local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
 
 local SylPhinSoundFolder = Instance.new("Folder")
@@ -438,26 +445,14 @@ top.Size = UDim2.new(1, 0, 0, 55)
 top.BackgroundTransparency = 1
 top.Parent = main
 
--- 2. Logo trên thanh tiêu đề (TopBar)
-local HeaderLogo = Instance.new("ImageLabel")
-HeaderLogo.Name = "HeaderLogo"
-HeaderLogo.AnchorPoint = Vector2.new(0, 0.5)
-HeaderLogo.Position = UDim2.new(0, 14, 0.5, 0)
-HeaderLogo.Size = UDim2.fromOffset(32, 32)
-HeaderLogo.BackgroundTransparency = 1
-HeaderLogo.Image = LOGO_ASSET
-HeaderLogo.ImageColor3 = Color3.fromRGB(255, 255, 255)
-HeaderLogo.ScaleType = Enum.ScaleType.Fit
-HeaderLogo.Parent = top
-
 local title = Instance.new("TextLabel")
 title.BackgroundTransparency = 1
-title.Position = UDim2.fromOffset(54, 3)
-title.Size = UDim2.new(1, -128, 0, 28)
+title.Position = UDim2.fromOffset(74, 3)
+title.Size = UDim2.new(1, -148, 0, 28)
 title.Font = Enum.Font.GothamBlack
 title.Text = "SYLPHIN"
 title.TextSize = 21
-title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextXAlignment = Enum.TextXAlignment.Center
 title.TextColor3 = Color3.new(1,1,1)
 title.Parent = top
 
@@ -491,12 +486,12 @@ end)
 
 local subtitle = Instance.new("TextLabel")
 subtitle.BackgroundTransparency = 1
-subtitle.Position = UDim2.new(0, 54, 0, 29)
+subtitle.Position = UDim2.new(0, 58, 0, 29)
 subtitle.Size = UDim2.new(1, -116, 0, 16)
 subtitle.Font = Enum.Font.Gotham
 subtitle.Text = "SCRIPT HUB"
 subtitle.TextSize = 10
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.TextXAlignment = Enum.TextXAlignment.Center
 subtitle.TextColor3 = Color3.fromRGB(145,145,155)
 subtitle.Parent = top
 
@@ -549,6 +544,10 @@ local dragVisualCorner = Instance.new("UICorner")
 dragVisualCorner.CornerRadius = UDim.new(1, 0)
 dragVisualCorner.Parent = dragVisual
 
+local dragCorner = Instance.new("UICorner")
+dragCorner.CornerRadius = UDim.new(1, 0)
+dragCorner.Parent = dragHandle
+
 local resizeHandle = Instance.new("TextButton")
 resizeHandle.Name = "SylPhinResizeHandle"
 resizeHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -564,6 +563,10 @@ resizeHandle.ZIndex = 70
 resizeHandle.Visible = false
 resizeHandle.Parent = gui
 
+local resizeDragging = false
+local resizeStartInput
+local resizeStartSize
+
 local function updateFloatingControls()
     local x = main.Position.X.Scale
     local ox = main.Position.X.Offset
@@ -573,6 +576,10 @@ local function updateFloatingControls()
     local halfH = main.AbsoluteSize.Y * 0.5
     dragHandle.Position = UDim2.new(x, ox, y, oy + halfH + 12)
     resizeHandle.Position = UDim2.new(x, ox + halfW + 15, y, oy + halfH + 15)
+end
+
+local function updateDragHandlePosition()
+    updateFloatingControls()
 end
 
 local sidebar = Instance.new("Frame")
@@ -658,7 +665,7 @@ local function makeTab(text, icon)
     local sweepBg = Instance.new("Frame")
     sweepBg.Name = "SelectedDarkBlueWhiteSweep"
     sweepBg.Size = UDim2.fromScale(1, 1)
-    sweepBg.BackgroundColor3 = Themes[ThemeIndex].Accent
+    sweepBg.BackgroundColor3 = Color3.fromRGB(8, 16, 30)
     sweepBg.BorderSizePixel = 0
     sweepBg.Visible = false
     sweepBg.ZIndex = b.ZIndex + 1
@@ -674,6 +681,7 @@ local function makeTab(text, icon)
         ColorSequenceKeypoint.new(0.60, Themes[ThemeIndex].Accent),
         ColorSequenceKeypoint.new(1.00, Themes[ThemeIndex].Accent)
     })
+    sweepBg.BackgroundColor3 = Themes[ThemeIndex].Accent
     sweep.Rotation = 0
     sweep.Offset = Vector2.new(1.15, 0)
     sweep.Parent = sweepBg
@@ -873,33 +881,189 @@ for _, entry in ipairs(MoreScripts) do
     addScriptCard(morePage, entry.Name, entry.Code)
 end
 
--- 3. Nút ẩn/hiện giao diện (Toggle Button / Open Button)
-local openButton = Instance.new("ImageButton")
-openButton.Name = "SylphinToggle"
-openButton.AnchorPoint = Vector2.new(0, 1)
-openButton.Position = UDim2.new(0, 14, 1, -14)
-openButton.Size = UDim2.fromOffset(42, 42)
-openButton.BackgroundColor3 = Themes[ThemeIndex].Accent
-openButton.BorderSizePixel = 0
-openButton.Image = LOGO_ASSET
-openButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
-openButton.ScaleType = Enum.ScaleType.Fit
-openButton.Visible = false
-openButton.Parent = gui
+local function configLabel(text)
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(1, -8, 0, 25)
+    l.BackgroundTransparency = 1
+    l.Text = text
+    l.Font = Enum.Font.FredokaOne
+    l.TextSize = 11
+    l.TextColor3 = Color3.fromRGB(190,190,200)
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Parent = configPage
+    return l
+end
 
-local oc = Instance.new("UICorner")
-oc.CornerRadius = UDim.new(0, 11)
-oc.Parent = openButton
+local function configButton(text)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, -8, 0, 38)
+    b.BackgroundColor3 = Color3.fromRGB(13, 27, 46)
+    b.BorderSizePixel = 0
+    b.Text = text
+    b.Font = Enum.Font.FredokaOne
+    b.TextSize = 11
+    b.TextColor3 = Color3.new(1,1,1)
+    b.AutoButtonColor = false
+    b.Parent = configPage
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 9)
+    c.Parent = b
+    return b
+end
 
-local openStroke = Instance.new("UIStroke")
-openStroke.Thickness = 1.2
-openStroke.Color = Color3.fromRGB(255, 255, 255)
-openStroke.Transparency = 0.6
-openStroke.Parent = openButton
+configLabel("GUI SIZE")
 
--- Dragging & Floating Logic
+local sizeRow = Instance.new("Frame")
+sizeRow.Size = UDim2.new(1, -8, 0, 42)
+sizeRow.BackgroundTransparency = 1
+sizeRow.Parent = configPage
+
+local sizeMinus = configButton("−")
+sizeMinus.Parent = sizeRow
+sizeMinus.Position = UDim2.fromOffset(0,0)
+sizeMinus.Size = UDim2.new(0.31, -3, 1, 0)
+
+local sizeText = configButton("MEDIUM")
+sizeText.Parent = sizeRow
+sizeText.Position = UDim2.new(0.31, 2, 0, 0)
+sizeText.Size = UDim2.new(0.38, -3, 1, 0)
+
+local sizePlus = configButton("+")
+sizePlus.Parent = sizeRow
+sizePlus.Position = UDim2.new(0.69, 2, 0, 0)
+sizePlus.Size = UDim2.new(0.31, -2, 1, 0)
+
+local sizeNames = {"SMALL", "MEDIUM", "LARGE"}
+
+local function setSize(index)
+    SizeIndex = math.clamp(index, 1, #Sizes)
+    sizeText.Text = sizeNames[SizeIndex]
+    local target = Sizes[SizeIndex]
+    tween(main, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = target})
+    tween(shadow, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = target})
+    task.defer(updateDragHandlePosition)
+end
+
+sizeMinus.Activated:Connect(function() SylPhinPlayClick(); setSize(SizeIndex - 1) end)
+sizePlus.Activated:Connect(function() SylPhinPlayClick(); setSize(SizeIndex + 1) end)
+
+configLabel("COLOR")
+
+local colorButton = configButton("Choose Color • SylPhin Red")
+
+local colorPopup = Instance.new("Frame")
+colorPopup.Name = "ColorPicker"
+colorPopup.Size = UDim2.new(1, -8, 0, 0)
+colorPopup.BackgroundTransparency = 1
+colorPopup.ClipsDescendants = true
+colorPopup.Parent = configPage
+
+local colorGrid = Instance.new("UIGridLayout")
+colorGrid.CellSize = UDim2.new(0.48, -4, 0, 34)
+colorGrid.CellPadding = UDim2.new(0.02, 0, 0, 6)
+colorGrid.SortOrder = Enum.SortOrder.LayoutOrder
+colorGrid.Parent = colorPopup
+
+local function applyTheme(index)
+    ThemeIndex = index
+    local th = Themes[ThemeIndex]
+    colorButton.Text = "Choose Color • " .. th.Name
+    tween(main, TweenInfo.new(0.2), {BackgroundColor3 = th.Main})
+    tween(stroke, TweenInfo.new(0.2), {Color = th.Accent})
+    dragVisual.BackgroundColor3 = th.Accent
+    resizeHandle.TextColor3 = th.Accent
+    notificationBar.BackgroundColor3 = th.Accent
+    notificationStroke.Color = th.Accent
+    openButton.BackgroundColor3 = th.Accent
+    sidebar.BackgroundColor3 = th.Main
+    for _, b in pairs(tabButtons) do
+        if b then
+            b.BackgroundColor3 = th.Panel
+            local sweepBg = b:FindFirstChild("SelectedDarkBlueWhiteSweep")
+            if sweepBg then
+                sweepBg.BackgroundColor3 = th.Accent
+                local sweep = sweepBg:FindFirstChildOfClass("UIGradient")
+                if sweep then
+                    sweep.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0.00, th.Accent),
+                        ColorSequenceKeypoint.new(0.40, th.Accent),
+                        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
+                        ColorSequenceKeypoint.new(0.60, th.Accent),
+                        ColorSequenceKeypoint.new(1.00, th.Accent)
+                    })
+                end
+            end
+        end
+    end
+    for _, page in pairs(pages) do
+        page.ScrollBarImageColor3 = th.Accent
+        for _, child in ipairs(page:GetChildren()) do
+            if child:IsA("Frame") then
+                child.BackgroundColor3 = th.Panel
+                local run = child:FindFirstChild("RUN")
+                if run then
+                    local runBg = run:FindFirstChild("RunBackground")
+                    if runBg then
+                        runBg.BackgroundColor3 = th.ButtonDark
+                        local rg = runBg:FindFirstChild("RunWhiteDarkRedSweep")
+                        if rg then
+                            rg.Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0.00, th.ButtonDark),
+                                ColorSequenceKeypoint.new(0.40, th.ButtonDark),
+                                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
+                                ColorSequenceKeypoint.new(0.60, th.ButtonDark),
+                                ColorSequenceKeypoint.new(1.00, th.ButtonDark)
+                            })
+                        end
+                    end
+                end
+            elseif child:IsA("TextButton") and child.Name ~= "RUN" then
+                child.BackgroundColor3 = th.Panel
+                child.TextColor3 = Color3.fromRGB(255,255,255)
+            end
+        end
+    end
+    refreshTabs()
+end
+
+for i, th in ipairs(Themes) do
+    local b = Instance.new("TextButton")
+    b.Name = th.Name
+    b.Text = th.Name
+    b.Font = Enum.Font.FredokaOne
+    b.TextSize = 10
+    b.TextColor3 = Color3.new(1,1,1)
+    b.BackgroundColor3 = th.Accent
+    b.BorderSizePixel = 0
+    b.AutoButtonColor = false
+    b.Parent = colorPopup
+    local bc = Instance.new("UICorner")
+    bc.CornerRadius = UDim.new(0, 8)
+    bc.Parent = b
+    b.Activated:Connect(function()
+        SylPhinPlayClick()
+        applyTheme(i)
+        tween(colorPopup, TweenInfo.new(0.16, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -8, 0, 0)})
+    end)
+end
+
+local colorsOpen = false
+colorButton.Activated:Connect(function()
+    SylPhinPlayClick()
+    colorsOpen = not colorsOpen
+    local h = colorsOpen and 5 * 34 + 4 * 6 or 0
+    tween(colorPopup, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -8, 0, h)})
+end)
+
+configLabel("WINDOW")
+
+local closeInfo = configButton("Close / Reopen: X or the SylPhin button")
+closeInfo.TextColor3 = Color3.fromRGB(145,145,155)
+
 local dragging = false
-local dragStart, startPos, dragSource
+local dragStart
+local startPos
+local dragSource
 
 local function beginDrag(input, source)
     dragging = true
@@ -934,7 +1098,10 @@ local function updateDrag(input)
     local newPos = UDim2.new(0.5, ox, 0.5, oy)
     main.Position = newPos
     shadow.Position = newPos
-    updateFloatingControls()
+    updateDragHandlePosition()
+    if notification and notification.Visible then
+        updateNotificationPosition()
+    end
 end
 
 local function endDrag(input)
@@ -961,16 +1128,64 @@ dragHandle.InputBegan:Connect(function(input)
     end
 end)
 
+resizeHandle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        resizeDragging = true
+        SylPhinPlayClick()
+        resizeStartInput = input.Position
+        resizeStartSize = main.Size
+    end
+end)
+
+local function updateResize(input)
+    if not resizeDragging then return end
+    local delta = input.Position - resizeStartInput
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1920,1080)
+    local centerX = main.AbsolutePosition.X + main.AbsoluteSize.X * 0.5
+    local centerY = main.AbsolutePosition.Y + main.AbsoluteSize.Y * 0.5
+    local maxW = math.max(300, math.min(540, 2 * math.min(centerX - 8, viewport.X - centerX - 8)))
+    local maxH = math.max(230, math.min(430, 2 * math.min(centerY - 8, viewport.Y - centerY - 8)))
+    local w = math.clamp(resizeStartSize.X.Offset + delta.X * 2, 300, maxW)
+    local h = math.clamp(resizeStartSize.Y.Offset + delta.Y * 2, 230, maxH)
+    main.Size = UDim2.fromOffset(w, h)
+    shadow.Size = UDim2.fromOffset(w, h)
+    updateFloatingControls()
+end
+
 UIS.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement
     or input.UserInputType == Enum.UserInputType.Touch then
         updateDrag(input)
+        updateResize(input)
     end
 end)
 
 UIS.InputEnded:Connect(function(input)
     endDrag(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        resizeDragging = false
+    end
 end)
+
+local openButton = Instance.new("TextButton")
+openButton.Name = "OpenSylPhin"
+openButton.AnchorPoint = Vector2.new(0, 1)
+openButton.Position = UDim2.new(0, 14, 1, -14)
+openButton.Size = UDim2.fromOffset(58, 38)
+openButton.BackgroundColor3 = Themes[ThemeIndex].Accent
+openButton.BorderSizePixel = 0
+openButton.Text = "SYLPHIN"
+openButton.Font = Enum.Font.FredokaOne
+openButton.TextSize = 11
+openButton.TextColor3 = Color3.new(1,1,1)
+openButton.Visible = false
+openButton.Parent = gui
+
+local oc = Instance.new("UICorner")
+oc.CornerRadius = UDim.new(0, 11)
+oc.Parent = openButton
 
 local mainScale = Instance.new("UIScale")
 mainScale.Scale = 1
@@ -999,6 +1214,7 @@ local function closeGui()
     shadow.Visible = false
     dragHandle.Visible = false
     resizeHandle.Visible = false
+    if notification then notification.Visible = false end
     main.BackgroundTransparency = 1
     shadow.BackgroundTransparency = 1
     main.Size = Sizes[SizeIndex]
@@ -1009,8 +1225,9 @@ local function closeGui()
     shadowScale.Scale = 1
     updateFloatingControls()
     openButton.Visible = true
+    updateDragHandlePosition()
     tween(openButton, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.fromOffset(42, 42)
+        Size = UDim2.fromOffset(58,38)
     })
 end
 
@@ -1038,8 +1255,288 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+local minimized = false
+local savedSize = main.Size
+
+minimize.Activated:Connect(function()
+    SylPhinPlayClick()
+    if minimized then
+        minimized = false
+        sidebar.Visible = true
+        content.Visible = true
+        resizeHandle.Visible = true
+        main.Size = UDim2.fromOffset(190,45)
+        shadow.Size = UDim2.fromOffset(190,45)
+        local restoreInfo = TweenInfo.new(0.24, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        tween(main, restoreInfo, {Size = savedSize})
+        tween(shadow, restoreInfo, {Size = savedSize})
+        task.delay(0.25, updateDragHandlePosition)
+    else
+        minimized = true
+        savedSize = main.Size
+        resizeHandle.Visible = false
+        sidebar.Visible = false
+        content.Visible = false
+        local miniInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        tween(main, miniInfo, {Size = UDim2.fromOffset(190,45)})
+        tween(shadow, miniInfo, {Size = UDim2.fromOffset(190,45)})
+        task.delay(0.19, updateDragHandlePosition)
+    end
+end)
+
+refreshTabs()
+
+-- ======================================================
+-- MOBILE-STYLE SUPPORT NOTIFICATION
+-- ======================================================
+local notification = Instance.new("Frame")
+notification.Name = "SupportNotification"
+notification.AnchorPoint = Vector2.new(0.5, 0.5)
+notification.Size = UDim2.fromOffset(270, 48)
+notification.BackgroundColor3 = Color3.fromRGB(18,18,23)
+notification.BackgroundTransparency = 1
+notification.BorderSizePixel = 0
+notification.ZIndex = 90
+notification.Visible = false
+notification.Parent = gui
+local notificationCorner = Instance.new("UICorner")
+notificationCorner.CornerRadius = UDim.new(0, 14)
+notificationCorner.Parent = notification
+local notificationStroke = Instance.new("UIStroke")
+notificationStroke.Thickness = 1
+notificationStroke.Transparency = 1
+notificationStroke.Color = Themes[ThemeIndex].Accent
+notificationStroke.Parent = notification
+local notificationBar = Instance.new("Frame")
+notificationBar.Size = UDim2.new(0, 3, 0.58, 0)
+notificationBar.Position = UDim2.new(0, 8, 0.21, 0)
+notificationBar.BackgroundColor3 = Themes[ThemeIndex].Accent
+notificationBar.BorderSizePixel = 0
+notificationBar.ZIndex = 91
+notificationBar.Parent = notification
+local notificationBarCorner = Instance.new("UICorner")
+notificationBarCorner.CornerRadius = UDim.new(1,0)
+notificationBarCorner.Parent = notificationBar
+local notificationText = Instance.new("TextLabel")
+notificationText.BackgroundTransparency = 1
+notificationText.Position = UDim2.fromOffset(20, 0)
+notificationText.Size = UDim2.new(1, -30, 1, 0)
+notificationText.Font = Enum.Font.FredokaOne
+notificationText.Text = "Thanks for all support guys :)"
+notificationText.TextSize = 12
+notificationText.TextColor3 = Color3.new(1,1,1)
+notificationText.TextTransparency = 1
+notificationText.TextXAlignment = Enum.TextXAlignment.Left
+notificationText.ZIndex = 91
+notificationText.Parent = notification
+
+local notificationGradient = Instance.new("UIGradient")
+notificationGradient.Rotation = 0
+notificationGradient.Offset = Vector2.new(1.1, 0)
+notificationGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(70, 255, 120)),
+    ColorSequenceKeypoint.new(0.38, Color3.fromRGB(70, 255, 120)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.62, Color3.fromRGB(70, 255, 120)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(70, 255, 120))
+})
+notificationGradient.Parent = notificationText
+
+task.spawn(function()
+    while gui.Parent and notificationText.Parent do
+        notificationGradient.Offset = Vector2.new(1.1, 0)
+        local t = tween(notificationGradient, TweenInfo.new(1.5, Enum.EasingStyle.Linear), {
+            Offset = Vector2.new(-1.1, 0)
+        })
+        t.Completed:Wait()
+    end
+end)
+
+function updateNotificationPosition()
+    if not notification then return end
+    local y = math.floor(-(main.Size.Y.Offset * 0.5) - 38)
+    notification.Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, main.Position.Y.Offset + y)
+end
+
+function showSupportNotification()
+    updateNotificationPosition()
+    notification.Visible = true
+    pcall(function() SylPhinPlaySound("click", 1.0, 0.30) end)
+    notification.BackgroundTransparency = 1
+    notificationText.TextTransparency = 1
+    notificationStroke.Transparency = 1
+    local startY = notification.Position.Y.Offset - 18
+    local endY = notification.Position.Y.Offset
+    notification.Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, startY)
+    tween(notification, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, endY),
+        BackgroundTransparency = 0.08
+    })
+    tween(notificationText, TweenInfo.new(0.20, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {TextTransparency = 0})
+    tween(notificationStroke, TweenInfo.new(0.20), {Transparency = 0.45})
+    task.delay(2.6, function()
+        if not notification or not notification.Parent or not notification.Visible then return end
+        local outY = notification.Position.Y.Offset - 14
+        tween(notification, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, outY),
+            BackgroundTransparency = 1
+        })
+        tween(notificationText, TweenInfo.new(0.18), {TextTransparency = 1})
+        tween(notificationStroke, TweenInfo.new(0.18), {Transparency = 1})
+        task.wait(0.27)
+        if notification then notification.Visible = false end
+    end)
+end
+
+-- ======================================================
+-- ONE-SCREEN INTRO -> MAIN GUI HANDOFF
+-- ======================================================
+main.Visible = false
+shadow.Visible = false
+dragHandle.Visible = false
+resizeHandle.Visible = false
+notification.Visible = false
+
+local intro = Instance.new("Frame")
+intro.Name = "SylPhinIntro"
+intro.Size = UDim2.fromScale(1, 1)
+intro.BackgroundColor3 = Color3.fromRGB(0,0,0)
+intro.BackgroundTransparency = 0.18
+intro.BorderSizePixel = 0
+intro.ZIndex = 100
+intro.Parent = gui
+
+local introBgGradient = Instance.new("UIGradient")
+introBgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.38, Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.62, Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0,0,0))
+})
+introBgGradient.Rotation = 0
+introBgGradient.Offset = Vector2.new(1.2,0)
+introBgGradient.Parent = intro
+
+task.spawn(function()
+    while gui.Parent and intro.Parent do
+        introBgGradient.Offset = Vector2.new(1.2,0)
+        local tw = tween(introBgGradient, TweenInfo.new(2.2, Enum.EasingStyle.Linear), {Offset = Vector2.new(-1.2,0)})
+        tw.Completed:Wait()
+        task.wait(0.08)
+    end
+end)
+
+local introCard = Instance.new("Frame")
+introCard.AnchorPoint = Vector2.new(0.5,0.5)
+introCard.Position = UDim2.fromScale(0.5,0.53)
+introCard.Size = UDim2.fromOffset(250,150)
+introCard.BackgroundColor3 = Color3.fromRGB(14,14,18)
+introCard.BorderSizePixel = 0
+introCard.ZIndex = 101
+introCard.Parent = intro
+local introCorner = Instance.new("UICorner")
+introCorner.CornerRadius = UDim.new(0,18)
+introCorner.Parent = introCard
+local introStroke = Instance.new("UIStroke")
+introStroke.Color = Color3.fromRGB(255,255,255)
+introStroke.Transparency = 0.72
+introStroke.Parent = introCard
+
+local introTitle = Instance.new("TextLabel")
+introTitle.BackgroundTransparency = 1
+introTitle.Size = UDim2.new(1,-20,0,45)
+introTitle.Position = UDim2.fromOffset(10,42)
+introTitle.Font = Enum.Font.GothamBlack
+introTitle.Text = "LOADING"
+introTitle.TextSize = 30
+introTitle.TextColor3 = Color3.new(1,1,1)
+introTitle.ZIndex = 102
+introTitle.Parent = introCard
+local introGrad = Instance.new("UIGradient")
+introGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,72,72)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255,210,95)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(170,90,255))
+})
+introGrad.Parent = introTitle
+
+local introStatus = Instance.new("TextLabel")
+introStatus.BackgroundTransparency = 1
+introStatus.Size = UDim2.new(1,-30,0,18)
+introStatus.Position = UDim2.fromOffset(15,91)
+introStatus.Font = Enum.Font.FredokaOne
+introStatus.Text = "Loading SylPhin..."
+introStatus.TextSize = 10
+introStatus.TextColor3 = Color3.fromRGB(150,150,160)
+introStatus.ZIndex = 102
+introStatus.Parent = introCard
+
+local introBar = Instance.new("Frame")
+introBar.Size = UDim2.new(0.72,0,0,4)
+introBar.Position = UDim2.new(0.14,0,1,-25)
+introBar.BackgroundColor3 = Color3.fromRGB(40,40,48)
+introBar.BorderSizePixel = 0
+introBar.ZIndex = 102
+introBar.Parent = introCard
+local ibc = Instance.new("UICorner")
+ibc.CornerRadius = UDim.new(1,0)
+ibc.Parent = introBar
+local introFill = Instance.new("Frame")
+introFill.Size = UDim2.new(0,0,1,0)
+introFill.BackgroundColor3 = Color3.fromRGB(255,255,255)
+introFill.BorderSizePixel = 0
+introFill.ZIndex = 103
+introFill.Parent = introBar
+local ifc = Instance.new("UICorner")
+ifc.CornerRadius = UDim.new(1,0)
+ifc.Parent = introFill
+
+local introScale = Instance.new("UIScale")
+introScale.Scale = 0.82
+introScale.Parent = introCard
+introCard.BackgroundTransparency = 1
+introTitle.TextTransparency = 1
+introStatus.TextTransparency = 1
+introBar.BackgroundTransparency = 1
+introFill.BackgroundTransparency = 1
+
+tween(introScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale=1})
+tween(introCard, TweenInfo.new(0.28), {BackgroundTransparency=0.03})
+tween(introTitle, TweenInfo.new(0.25), {TextTransparency=0})
+tween(introStatus, TweenInfo.new(0.25), {TextTransparency=0})
+tween(introBar, TweenInfo.new(0.25), {BackgroundTransparency=0})
+tween(introFill, TweenInfo.new(0.25), {BackgroundTransparency=0})
+tween(introFill, TweenInfo.new(2.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Size=UDim2.new(1,0,1,0)})
+
+task.wait(0.55)
+task.wait(2.6)
+introStatus.Text = "SYLPHIN"
+task.wait(1.5)
+
 main.Visible = true
 shadow.Visible = true
-dragHandle.Visible = true
-resizeHandle.Visible = true
-refreshTabs()
+SylPhinPlayClick(1.35,0.24)
+mainScale.Scale = 0.78
+shadowScale.Scale = 0.78
+main.BackgroundTransparency = 0
+shadow.BackgroundTransparency = 0.45
+local handoff = TweenInfo.new(0.52, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+tween(mainScale, handoff, {Scale=1})
+tween(shadowScale, handoff, {Scale=1})
+
+task.spawn(function()
+    task.wait(0.05)
+    tween(introScale, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Scale=0.9})
+    tween(intro, TweenInfo.new(0.38, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency=1})
+    tween(introCard, TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency=1})
+    tween(introTitle, TweenInfo.new(0.25), {TextTransparency=1})
+    tween(introStatus, TweenInfo.new(0.25), {TextTransparency=1})
+    task.wait(0.4)
+    intro:Destroy()
+    updateDragHandlePosition()
+    dragHandle.Visible = true
+    resizeHandle.Visible = true
+    task.wait(0.08)
+    showSupportNotification()
+end)
