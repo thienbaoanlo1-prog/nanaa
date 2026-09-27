@@ -1,4 +1,4 @@
-local TweenService = game:GetService("TweenService")
+Local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -293,7 +293,7 @@ local Scripts = {
 
 local MoreScripts = {
     {Name = "AJJAN", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/271f96ca25f29ae395be1c0f9e6f4ead.lua"))()]]},
-    {Name = "Vantablack Hub", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tranduykhanh08428-web/VantablackHub/refs/heads/main/Stealanegg.lua.txt"))()]]}
+    {Name = "Various Hub", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/02a9ed204f6b2fbff70b6d171251a3f7.lua"))()]]}
 }
 
 local Themes = {
