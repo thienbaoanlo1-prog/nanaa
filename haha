@@ -1,4 +1,4 @@
-Local TweenService = game:GetService("TweenService")
+local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -6,11 +6,16 @@ local LocalPlayer = Players.LocalPlayer
 local fileName = "sylphin_logo.png"
 local imageUrl = "https://files.catbox.moe/0iwbgk.png"
 
-if not isfile(fileName) then
-    writefile(fileName, game:HttpGet(imageUrl))
-end
+local ASSET_LOGO = ""
+pcall(function()
+    if isfile and writefile and getcustomasset then
+        if not isfile(fileName) then
+            writefile(fileName, game:HttpGet(imageUrl))
+        end
+        ASSET_LOGO = getcustomasset(fileName)
+    end
+end)
 
-local ASSET_LOGO = getcustomasset(fileName)
 local DISCORD_LINK = "https://discord.gg/sylphins"
 
 -- Auto-copy Discord link to clipboard
@@ -43,14 +48,14 @@ DarkOverlay.Parent = ScreenGui
 local Card = Instance.new("Frame")
 Card.Name = "Card"
 Card.AnchorPoint = Vector2.new(0.5, 0.5)
-Card.Position = UDim2.fromScale(0.5, 0.54) -- Slightly lower for smooth pop-up tween
+Card.Position = UDim2.fromScale(0.5, 0.54)
 Card.Size = UDim2.fromOffset(360, 220)
 Card.BackgroundColor3 = Color3.fromRGB(14, 14, 16)
 Card.BackgroundTransparency = 1
 Card.ClipsDescendants = true
 Card.Parent = ScreenGui
 
--- Strong black/white background sweep for the loading card.
+-- Background Sweep
 local LoadingBgGradient = Instance.new("UIGradient")
 LoadingBgGradient.Name = "LoadingBlackWhiteSweep"
 LoadingBgGradient.Color = ColorSequence.new({
@@ -180,18 +185,13 @@ Status.Font = Enum.Font.Gotham
 Status.TextSize = 11
 Status.Parent = Card
 
--- ======================================================
---                 ANIMATION SEQUENCE
--- ======================================================
-
+-- ANIMATION SEQUENCE
 local tweenFast = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local tweenPop = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
--- 1. Dim Background
 TweenService:Create(DarkOverlay, tweenFast, {BackgroundTransparency = 0.45}):Play()
 task.wait(0.05)
 
--- 2. Pop-up Intro Card
 TweenService:Create(Card, tweenPop, {
     Position = UDim2.fromScale(0.5, 0.5),
     BackgroundTransparency = 0.05
@@ -199,7 +199,6 @@ TweenService:Create(Card, tweenPop, {
 TweenService:Create(CardStroke, tweenFast, {Transparency = 0.88}):Play()
 task.wait(0.15)
 
--- 3. Fade elements in
 TweenService:Create(Logo, tweenFast, {ImageTransparency = 0}):Play()
 TweenService:Create(Title, tweenFast, {TextTransparency = 0}):Play()
 TweenService:Create(DiscordText, tweenFast, {TextTransparency = 0}):Play()
@@ -209,7 +208,6 @@ TweenService:Create(Status, tweenFast, {TextTransparency = 0}):Play()
 
 task.wait(0.25)
 
--- 4. Animate Loading Bar
 Status.Text = "Loading scripts & assets..."
 TweenService:Create(ProgressFill, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
     Size = UDim2.new(1, 0, 1, 0)
@@ -217,13 +215,11 @@ TweenService:Create(ProgressFill, TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum
 
 task.wait(1.1)
 
--- 5. Complete Status
 Status.Text = "SYLPHIN"
 Status.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 task.wait(0.7)
 
--- 6. Fade Out Animation
 local tweenOut = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 
 TweenService:Create(Card, tweenOut, {
@@ -240,18 +236,11 @@ TweenService:Create(ProgressFill, tweenOut, {BackgroundTransparency = 1}):Play()
 TweenService:Create(Status, tweenOut, {TextTransparency = 1}):Play()
 
 task.wait(0.45)
-
--- Clean up intro GUI
 ScreenGui:Destroy()
 
--- ======================================================
---          PUT YOUR MAIN SYLPHIN HUB UI SCRIPT BELOW
--- ======================================================
-
-local Players = game:GetService("Players")
+-- MAIN HUB SCRIPT
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
 
 local SylPhinSoundFolder = Instance.new("Folder")
@@ -324,7 +313,7 @@ gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.DisplayOrder = 9999
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Parent = PlayerGui
+gui.Parent = GuiParent
 
 local scale = Instance.new("UIScale")
 scale.Scale = 0.88
@@ -501,10 +490,6 @@ local function updateFloatingControls()
     local halfH = main.AbsoluteSize.Y * 0.5
     dragHandle.Position = UDim2.new(x, ox, y, oy + halfH + 12)
     resizeHandle.Position = UDim2.new(x, ox + halfW + 15, y, oy + halfH + 15)
-end
-
-local function updateDragHandlePosition()
-    updateFloatingControls()
 end
 
 local sidebar = Instance.new("Frame")
@@ -864,7 +849,7 @@ local function setSize(index)
     local target = Sizes[SizeIndex]
     tween(main, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = target})
     tween(shadow, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = target})
-    task.defer(updateDragHandlePosition)
+    task.defer(updateFloatingControls)
 end
 
 sizeMinus.Activated:Connect(function() SylPhinPlayClick(); setSize(SizeIndex - 1) end)
@@ -1021,7 +1006,7 @@ local function updateDrag(input)
     local newPos = UDim2.new(0.5, ox, 0.5, oy)
     main.Position = newPos
     shadow.Position = newPos
-    updateDragHandlePosition()
+    updateFloatingControls()
     if notification and notification.Visible then
         updateNotificationPosition()
     end
@@ -1148,7 +1133,6 @@ local function closeGui()
     shadowScale.Scale = 1
     updateFloatingControls()
     openButton.Visible = true
-    updateDragHandlePosition()
     tween(openButton, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
         Size = UDim2.fromOffset(58,38)
     })
@@ -1193,7 +1177,7 @@ minimize.Activated:Connect(function()
         local restoreInfo = TweenInfo.new(0.24, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         tween(main, restoreInfo, {Size = savedSize})
         tween(shadow, restoreInfo, {Size = savedSize})
-        task.delay(0.25, updateDragHandlePosition)
+        task.delay(0.25, updateFloatingControls)
     else
         minimized = true
         savedSize = main.Size
@@ -1203,15 +1187,13 @@ minimize.Activated:Connect(function()
         local miniInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
         tween(main, miniInfo, {Size = UDim2.fromOffset(190,45)})
         tween(shadow, miniInfo, {Size = UDim2.fromOffset(190,45)})
-        task.delay(0.19, updateDragHandlePosition)
+        task.delay(0.19, updateFloatingControls)
     end
 end)
 
 refreshTabs()
 
--- ======================================================
--- MOBILE-STYLE SUPPORT NOTIFICATION
--- ======================================================
+-- NOTIFICATION
 local notification = Instance.new("Frame")
 notification.Name = "SupportNotification"
 notification.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1222,14 +1204,17 @@ notification.BorderSizePixel = 0
 notification.ZIndex = 90
 notification.Visible = false
 notification.Parent = gui
+
 local notificationCorner = Instance.new("UICorner")
 notificationCorner.CornerRadius = UDim.new(0, 14)
 notificationCorner.Parent = notification
+
 local notificationStroke = Instance.new("UIStroke")
 notificationStroke.Thickness = 1
 notificationStroke.Transparency = 1
 notificationStroke.Color = Themes[ThemeIndex].Accent
 notificationStroke.Parent = notification
+
 local notificationBar = Instance.new("Frame")
 notificationBar.Size = UDim2.new(0, 3, 0.58, 0)
 notificationBar.Position = UDim2.new(0, 8, 0.21, 0)
@@ -1237,9 +1222,11 @@ notificationBar.BackgroundColor3 = Themes[ThemeIndex].Accent
 notificationBar.BorderSizePixel = 0
 notificationBar.ZIndex = 91
 notificationBar.Parent = notification
+
 local notificationBarCorner = Instance.new("UICorner")
 notificationBarCorner.CornerRadius = UDim.new(1,0)
 notificationBarCorner.Parent = notificationBar
+
 local notificationText = Instance.new("TextLabel")
 notificationText.BackgroundTransparency = 1
 notificationText.Position = UDim2.fromOffset(20, 0)
@@ -1284,7 +1271,7 @@ end
 function showSupportNotification()
     updateNotificationPosition()
     notification.Visible = true
-    pcall(function() SylPhinPlaySound("click", 1.0, 0.30) end)
+    SylPhinPlayClick(1.0, 0.30)
     notification.BackgroundTransparency = 1
     notificationText.TextTransparency = 1
     notificationStroke.Transparency = 1
@@ -1311,9 +1298,7 @@ function showSupportNotification()
     end)
 end
 
--- ======================================================
--- ONE-SCREEN INTRO -> MAIN GUI HANDOFF
--- ======================================================
+-- INTRO HANDOFF
 main.Visible = false
 shadow.Visible = false
 dragHandle.Visible = false
@@ -1457,7 +1442,7 @@ task.spawn(function()
     tween(introStatus, TweenInfo.new(0.25), {TextTransparency=1})
     task.wait(0.4)
     intro:Destroy()
-    updateDragHandlePosition()
+    updateFloatingControls()
     dragHandle.Visible = true
     resizeHandle.Visible = true
     task.wait(0.08)
