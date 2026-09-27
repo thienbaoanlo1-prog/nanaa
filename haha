@@ -287,88 +287,13 @@ if old then
 end
 
 local Scripts = {
-    {Name = "Auto find low player count servers", Code = [[loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Low-Server-Finder-GUI-30660"))()]]},
-    {Name = "SODIUM HUB STEAL AN EGG SCRIPT", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/74528f064778ab498a9dde47df0e5206.lua"))()]]},
-    {Name = "GLIN'T HUB RIDE A PET (KEYLESS)", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/b792ba22a029da57e3e0306f258ae518.lua"))()]]},
-    {Name = "STORM HUB STEAL AN EGG (KEYLESS)", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/45d7f01c717478df724ff92a3b103997.lua"))()]]},
-    {Name = "Pulse hub", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua"))()]]},
-    {Name = "Exploiter Hub | Steal a egg", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Main-Scripts-Ready-V9/Exploiter-Loader/refs/heads/main/New.lua"))()]]},
-    {Name = "script--130. VORTEX X SAGE ULTRA (No Key)", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Israel-Vortex/vortex-x-scripts/refs/heads/main/Official-Vortex-Software/Dev-Project/StealAnEgg.lua"))()]]},
-    {Name = "NEW LENNON", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/4595fe31a5f7a8b4f4dd7071f3119ef7.lua"))()]]},
-    {Name = "DECODE KEYLESS", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/ItzYumi/Decode/refs/heads/main/DE%3ACODE.lua", true))()]]},
-    {Name = "Bee hub anti kick", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/arjhaysaver-byte/BEE-SCRIPT-./refs/heads/main/ANTI%20KICK%20V4"))()]]},
-    {Name = "script--129. VOIDSHELL HUB (No Key)", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/VoidShell-null/VoidShell-Hub/refs/heads/main/Scripts/StealAnEgg.luau"))()]]},
-    {Name = "MIRANDA HUB V3", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/mirandaafk.lua"))()]]},
-    {Name = "SPEED HUB GET KEY", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()]]},
-    {Name = "VINCITORE KEYLESS", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/idk953072-crypto/Steal-an-Egg/refs/heads/main/vincitore"))()]]},
-    {Name = "HOSHI HUB KEYLESS", Code = [[loadstring(game:HttpGet("https://hoshihub.site/loader.lua"))()]]},
-    {Name = "SHADER", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/robloxscripts2026/simple-shader/refs/heads/main/lua"))()]]},
-    {Name = "NEMO HUB RIDE A PET KEYLESS", Code = [[loadstring(game:HttpGet("https://rawscripts.net/raw/Ride-A-Pet-NOKEY-NemoHub-or-or-AUTO-FARM-+-EGG-ESP-+-MORE!-228328"))()]]},
-    {Name = "CHILLI HUB", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
-    {Name = "New posted Live Spwan map script", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/LostInSyntaxx/RideAPet/main/loader.lua"))()]]},
-    {Name = "ajjans hub", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"))()]]},
-    {Name = "axon hub", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/97c3f6db55a2cf72141537a85458e5a7.lua"))()]]},
-    {Name = "OMG HUB GET KEY", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua"))()]]},
-    {Name = "zeroin hub", Code = [[loadstring(game:HttpGet("https://zeroinhub.com/api/script"))()]]},
-    {Name = "New Lennon Update", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/ui/584e23b68f5f361081321954763ab5e5.lua"))()]]},
-    {Name = "SYLPHIN HUB BLADE BALL", Code = [[loadstring(game:HttpGet("https://gist.githubusercontent.com/virexx55/1ceaa1a6556598d1b739e0f1ca1de4e7/raw/3cdd35760795bd684caa998b7440a4f9b5f8f0af/virex.lua"))()]]},
-    {Name = "YOKUDO HUB", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/betdoyvaka/stealanegg/main/Loader.lua"))()]]},
-    {Name = "CHILLI HUB", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()]]},
-    {Name = "script--148. ASTRAL HUB (NO KEY)", Code = [[loadstring(game:HttpGet("https://api.polsec.sh/loader/57d088befe906a8e/76f9bde1349c5eb9"))()]]},
-    {Name = "cyrus hub", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/CyrusOffc/scriptcyrus/refs/heads/main/loader"))()]]},
-    {Name = "limbo hub", Code = [[loadstring(game:HttpGet("https://limbohub.my.id/loader.lua"))()]]},
-    {Name = "script--141. KIRA-HUB (NO KEY)", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/LSSOPS/OpenSource/refs/heads/main/KiraHub_Steal_An_Egg.lua"))()]]},
-    {Name = "SENA V5 (NO KEY)", Code = [[loadstring(game:HttpGet("https://senahub.xyz/raw/loader"))()]]},
-    {Name = "JANE SCRIPTS", Code = [[loadstring(game:HttpGet("https://synex.lat/loaders/stealegg.lua"))()]]},
-    {Name = "script--139. LUXY HUB (NO KEY)", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/16b55b285584ec6d065913f5d59fb105.lua"))()]]},
+    {Name = "BigFroot", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua"))()]]},
+    {Name = "Luminon", Code = [[loadstring(game:HttpGet("http://luminon.top/loader.lua"))()]]}
 }
 
 local MoreScripts = {
-    {Name = "Script 1", Code = [[_G.loadstring(game:HttpGet("https://raw.githubusercontent.com/Kenniel123/Steal-A-Egg/refs/heads/main/Steal%20A%20Egg"))()]]},
-    {Name = "Script 2", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/mopsscript7-gif/steal-an-egg/refs/heads/main/script.lua"))()]]},
-    {Name = "Script 3", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/NEOXHUBMAIN/refs/heads/main/loader", true))()]]},
-    {Name = "Script 4", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/RyuunOx/Clover/refs/heads/main/main.lua"))()]]},
-    {Name = "Script 5", Code = [[loadstring(game:HttpGet("https://fyycommunity.com/"))()]]},
-    {Name = "Script 6", Code = [[loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/bf52181bce5c28e6becd16eebfa1a88ddaf646c7acb10015fbaa7b30dc7bad0a8/download"))()]]},
-    {Name = "Script 7", Code = [[loadstring(game:HttpGet("https://syshub.fun/free"))()]]},
-    {Name = "Script 8", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/kaisenlmao/loader/refs/heads/main/chiyo.lua"))()]]},
-    {Name = "Script 9", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/stealanegg"))()]]},
-    {Name = "Script 10", Code = [[loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/0199b576f5c2d5a34159f0f9f4e1de0a566b4d1da5b1cfa5d2f71ade9bdcaa24/download"))()]]},
-    {Name = "Script 11", Code = [[loadstring(game:HttpGet("https://gist.githubusercontent.com/spiritualgaming1123-beep/46ef55c5f8284e07b6aafc5ebd12233f4/raw/5b24749c3931c1838a76e64c9af508dcdd03700a/gistfile1.lua"))()]]},
-    {Name = "Script 12", Code = [[loadstring(game:HttpGet("https://loader.sportsclub.fun/loader.luau"))()]]},
-    {Name = "Script 13", Code = [[loadstring(game:HttpGet("https://scriptversekey.xyz/s/steal-an-egg"))()]]},
-    {Name = "Script 14", Code = [[loadstring(game:HttpGet("https://zkcommunity.cloud/loader.lua"))()]]},
-    {Name = "Script 15", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/premiumbuddy/kex/refs/heads/main/kexxxx"))()]]},
-    {Name = "Script 16", Code = [[loadstring(game:HttpGet("https://vxezestudio.online/api/scripts/script_G5CGjqj2X3r0S/stream/init"))()]]},
-    {Name = "Script 17", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/ui/a87f00d9adf63658655fcd02ab86a4ef.lua"))()]]},
-    {Name = "Script 18", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua"))()]]},
-    {Name = "Script 19", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/asvraRoblox/stealegg/refs/heads/main/main"))()]]},
-    {Name = "Script 20", Code = [[loadstring(game:HttpGet("https://www.zeroimpact.online/raw/loader"))()]]},
-    {Name = "Script 21", Code = [[loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/f56794e06dcfb4adad5dc739dff503f38cc94e045eafe823a3c5f09c4cc/download"))()]]},
-    {Name = "Script 22", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/9ee4edde227ac85f50872bf9e4226508.lua"))()]]},
-    {Name = "Script 23", Code = [[loadstring(game:HttpGet("https://hoshihub.site/loader.lua"))()]]},
-    {Name = "Script 24", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/97c3f6db55a2cf72141537a85458e5a7.lua"))()]]},
-    {Name = "Script 25", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/5946add9ab91f1e04cb005346a8b1968.lua"))()]]},
-    {Name = "Script 26", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/MisterNovitski/Vantage/refs/heads/main/mm2.txt", true))()]]},
-    {Name = "Script 27", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/NovaHubRBLX/NovaHub/refs/heads/main/novahub.lua"))()]]},
-    {Name = "Script 28", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/virtuososvisualedits-prog/Ww/refs/heads/main/final-obfuscated.lua"))()]]},
-    {Name = "Script 29", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/x2zu/loader/main/freeloader.lua", true))()]]},
-    {Name = "Script 30", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/bao8jl/solixhub/main/loader"))()]]},
-    {Name = "Script 31", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()]]},
-    {Name = "Script 32", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/JualNasiRendang/loader/refs/heads/main/main.lua"))()]]},
-    {Name = "Script 33", Code = [[loadstring(game:HttpGet("http://luminon.top/loader.lua"))()]]},
-    {Name = "Script 34", Code = [[loadstring(game:HttpGet("https://airflowscript.com/loader"))()]]},
-    {Name = "Script 35", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/iLove-yuri/leeeeesbian/refs/heads/main/homumado.lua"))()]]},
-    {Name = "Script 36", Code = [[loadstring(game:HttpGet("https://api.saiops.cc/scripts/Steal-An-Egg-Script.lua"))()]]},
-    {Name = "Script 37", Code = [[loadstring(game:HttpGet("https://api.valincsyndicate.com/v1/releases/5502cba03703f4a3628d522d396b80d8.lua"))()]]},
-    {Name = "Script 38", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/TeamUBHub/UBLoader/refs/heads/main/Loader.lua"))()]]},
-    {Name = "Script 39", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem"))()]]},
-    {Name = "Script 40", Code = [[loadstring(game:HttpGet("https://flowauth.net/v1/loaders/69d3463240384f3a73fbe32c178093a2.lua"))()]]},
-    {Name = "Script 41", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2"))()]]},
-    {Name = "Script 42", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua"))()]]},
-    {Name = "Script 43", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua"))()]]},
-    {Name = "Script 44", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua"))()]]},
-    {Name = "Script 45", Code = [[loadstring(game:HttpGet("https://pastefy.app/alzaPmW9/raw"))()]]}
+    {Name = "AJJAN", Code = [[loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/271f96ca25f29ae395be1c0f9e6f4ead.lua"))()]]},
+    {Name = "Vantablack Hub", Code = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/tranduykhanh08428-web/VantablackHub/refs/heads/main/Stealanegg.lua.txt"))()]]}
 }
 
 local Themes = {
@@ -612,7 +537,7 @@ content.Size = UDim2.new(1, -122, 1, -69)
 content.BackgroundTransparency = 1
 content.Parent = main
 
-local currentTab = "Scripts"
+local currentTab = "Script Key"
 local pages = {}
 
 local function makePage(name)
@@ -626,7 +551,7 @@ local function makePage(name)
     page.CanvasSize = UDim2.new()
     page.AutomaticCanvasSize = Enum.AutomaticSize.Y
     page.ScrollingDirection = Enum.ScrollingDirection.Y
-    page.Visible = (name == "Scripts")
+    page.Visible = (name == "Script Key")
     page.Parent = content
 
     local layout = Instance.new("UIListLayout")
@@ -643,8 +568,8 @@ local function makePage(name)
     return page
 end
 
-local scriptsPage = makePage("Scripts")
-local morePage = makePage("More Scripts")
+local scriptsPage = makePage("Script Key")
+local morePage = makePage("Script Nokey")
 local configPage = makePage("Config")
 
 local tabButtons = {}
@@ -703,15 +628,13 @@ local function makeTab(text, icon)
     return b
 end
 
-local scriptsTab = makeTab("Scripts", "▣")
-local moreTab = makeTab("More", "＋")
+local scriptsTab = makeTab("Script Key", "▣")
+local moreTab = makeTab("Script Nokey", "＋")
 local configTab = makeTab("Config", "⚙")
 
 local function refreshTabs()
     for name, b in pairs(tabButtons) do
-        local selected = (name == "Scripts" and currentTab == "Scripts")
-            or (name == "More" and currentTab == "More Scripts")
-            or (name == "Config" and currentTab == "Config")
+        local selected = (name == currentTab)
         local sweepBg = b:FindFirstChild("SelectedDarkBlueWhiteSweep")
         local sweep = sweepBg and sweepBg:FindFirstChildOfClass("UIGradient")
         local tabLabel = b:FindFirstChild("TabLabel")
@@ -724,7 +647,7 @@ local function refreshTabs()
                 tabSweepTokens[name] = (tabSweepTokens[name] or 0) + 1
                 local token = tabSweepTokens[name]
                 task.spawn(function()
-                    while gui.Parent and currentTab == ((name == "More") and "More Scripts" or name) and tabSweepTokens[name] == token and b.Parent do
+                    while gui.Parent and currentTab == name and tabSweepTokens[name] == token and b.Parent do
                         sweep.Offset = Vector2.new(1.15, 0)
                         local tw = tween(sweep, TweenInfo.new(1.8, Enum.EasingStyle.Linear), {Offset = Vector2.new(-1.15, 0)})
                         tw.Completed:Wait()
@@ -753,8 +676,8 @@ local function switchTab(tab)
     refreshTabs()
 end
 
-scriptsTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("Scripts") end)
-moreTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("More Scripts") end)
+scriptsTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("Script Key") end)
+moreTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("Script Nokey") end)
 configTab.Activated:Connect(function() SylPhinPlayClick(); switchTab("Config") end)
 
 local function execute(code, button)
